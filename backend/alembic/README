@@ -1,0 +1,20 @@
+# Alembic Migrations
+
+This directory contains the database migrations for the Student Management System.
+
+## Commands
+
+### Create a new migration revision
+```bash
+alembic revision --autogenerate -m "description of changes"
+```
+
+### Apply all migrations
+```bash
+alembic upgrade head
+```
+
+### Rollback the last migration
+```bash
+alembic downgrade -1
+```
