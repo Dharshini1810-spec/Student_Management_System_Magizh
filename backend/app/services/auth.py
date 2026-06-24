@@ -28,6 +28,12 @@ class AuthService:
                 code="INACTIVE_ACCOUNT"
             )
             
+        if not user.is_approved:
+            raise AuthenticationException(
+                message="Your account is pending approval by the Super Admin.",
+                code="PENDING_APPROVAL"
+            )
+
         if not verify_password(password, user.hashed_password):
             raise AuthenticationException(
                 message="Incorrect email or password",
@@ -36,66 +42,22 @@ class AuthService:
             
         return user
 
-
     @staticmethod
-    def forgot_password(db: Session, email: str) -> str:
+    def change_password(db: Session, user: User, current_password: str, new_password: str) -> User:
         """
-        Generates a password reset token if the user email exists.
-        Returns the token string.
+        Validates current password and updates it to the new password.
+        Also clears is_first_login flag.
         """
-        user = UserRepository.get_by_email(db, email)
-        if not user:
-            # For security reasons, we can log it but don't expose email existence.
-            # However, for testing/specification flows we can raise an error or just return a token.
-            # Let's raise an exception so it is easy to test forgot password functionality.
+        if not verify_password(current_password, user.hashed_password):
             raise APIException(
-                message="No user found with this email address",
-                code="USER_NOT_FOUND",
-                status_code=404
-            )
-            
-        token = str(uuid.uuid4())
-        expiry = datetime.now(timezone.utc) + timedelta(minutes=15)
-        
-        UserRepository.update(db, user, {
-            "reset_token": token,
-            "reset_token_expires_at": expiry
-        })
-        return token
-
-    @staticmethod
-    def reset_password(db: Session, token: str, new_password: str) -> User:
-        """
-        Validates the reset token and updates the user's password.
-        Clears the reset token parameters.
-        """
-        user = UserRepository.get_by_reset_token(db, token)
-        if not user:
-            raise APIException(
-                message="Invalid or expired reset token",
-                code="INVALID_RESET_TOKEN",
+                message="Incorrect current password",
+                code="INCORRECT_CURRENT_PASSWORD",
                 status_code=400
             )
-            
-        # Verify expiry time
-        if user.reset_token_expires_at:
-            # Normalize to timezone aware datetime if necessary
-            expiry = user.reset_token_expires_at
-            if expiry.tzinfo is None:
-                expiry = expiry.replace(tzinfo=timezone.utc)
-                
-            if datetime.now(timezone.utc) > expiry:
-                raise APIException(
-                    message="Reset token has expired",
-                    code="EXPIRED_RESET_TOKEN",
-                    status_code=400
-                )
-                
+
         hashed = get_password_hash(new_password)
         UserRepository.update(db, user, {
             "hashed_password": hashed,
-            "reset_token": None,
-            "reset_token_expires_at": None,
-            "is_first_login": False  # Resetting password also clears first-login flag
+            "is_first_login": False
         })
         return user

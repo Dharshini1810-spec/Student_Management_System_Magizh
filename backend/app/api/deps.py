@@ -87,3 +87,71 @@ class RoleRequired:
                 code="INSUFFICIENT_PERMISSIONS"
             )
         return current_user
+
+class PermissionRequired:
+    """
+    Dependency class to enforce permission-based access control, allowing custom user overrides.
+    """
+    def __init__(self, required_permission: str):
+        self.required_permission = required_permission
+
+    def __call__(
+        self,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ) -> User:
+        # SUPER_ADMIN bypasses all checks
+        if current_user.role == UserRole.SUPER_ADMIN.value:
+            return current_user
+
+        from app.repositories.role_permission import RolePermissionRepository
+        
+        # 1. Check role-based permissions
+        role_perms = RolePermissionRepository.get_role_permissions(db, current_user.role)
+        if any(p.name == self.required_permission for p in role_perms):
+            return current_user
+
+        # 2. Check custom user permissions
+        custom_perms = RolePermissionRepository.get_custom_permissions(db, current_user.id)
+        if any(cp.permission.name == self.required_permission for cp in custom_perms):
+            return current_user
+
+        raise AuthorizationException(
+            message=f"You do not have permission to perform this action: {self.required_permission}",
+            code="INSUFFICIENT_PERMISSIONS"
+        )
+
+def check_data_access(current_user: User, target_user: User) -> None:
+    """
+    Enforces data scoping rules:
+    - Super Admin can access everything.
+    - Admin access is limited to assigned mentors/students.
+    - Mentor access is limited to assigned students.
+    - Student access is limited to own data.
+    """
+    if current_user.role == UserRole.SUPER_ADMIN.value:
+        return
+
+    if current_user.role == UserRole.STUDENT.value:
+        if target_user.id != current_user.id:
+            raise AuthorizationException(
+                message="Access denied: Students can only access their own data",
+                code="ACCESS_DENIED"
+            )
+        return
+
+    if current_user.role == UserRole.MENTOR.value:
+        if target_user.role != UserRole.STUDENT.value or target_user.mentor_id != current_user.id:
+            raise AuthorizationException(
+                message="Access denied: Mentors can only access their assigned students",
+                code="ACCESS_DENIED"
+            )
+        return
+
+    if current_user.role == UserRole.ADMIN.value:
+        if target_user.admin_id != current_user.id:
+            raise AuthorizationException(
+                message="Access denied: Admins can only access their assigned mentors and students",
+                code="ACCESS_DENIED"
+            )
+        return

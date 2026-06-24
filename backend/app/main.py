@@ -6,6 +6,8 @@ from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.response import success_response
 
+from sqlalchemy import text
+from app.database.session import SessionLocal
 from app.api.v1 import api_router
 
 # Configure logger
@@ -44,4 +46,29 @@ def root():
     return success_response(
         data={"version": "1.0.0", "project": settings.PROJECT_NAME},
         message="Welcome to the Student Management System API."
+    )
+
+
+@app.get("/health")
+def health_check():
+    """
+    Health check endpoint to verify API and Database status.
+    """
+    db_status = "healthy"
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+    except Exception as e:
+        db_status = "unhealthy"
+        logger.error(f"Database health check failed: {e}")
+
+    return success_response(
+        data={
+            "services": {
+                "api": "healthy",
+                "database": db_status
+            }
+        },
+        message="System status retrieved successfully."
     )
