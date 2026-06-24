@@ -1,5 +1,5 @@
 import uuid
-from typing import Generator
+from typing import Generator, Optional
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -121,7 +121,7 @@ class PermissionRequired:
             code="INSUFFICIENT_PERMISSIONS"
         )
 
-def check_data_access(current_user: User, target_user: User) -> None:
+def check_data_access(current_user: User, target_user: User, db: Optional[Session] = None) -> None:
     """
     Enforces data scoping rules:
     - Super Admin can access everything.
@@ -141,7 +141,23 @@ def check_data_access(current_user: User, target_user: User) -> None:
         return
 
     if current_user.role == UserRole.MENTOR.value:
-        if target_user.role != UserRole.STUDENT.value or target_user.mentor_id != current_user.id:
+        if target_user.role != UserRole.STUDENT.value:
+            raise AuthorizationException(
+                message="Access denied: Mentors can only access their assigned students",
+                code="ACCESS_DENIED"
+            )
+        
+        assigned = False
+        if db:
+            from app.models.student import MentorStudent
+            assigned = db.query(MentorStudent).filter(
+                MentorStudent.mentor_id == current_user.id,
+                MentorStudent.student_id == target_user.id
+            ).first() is not None
+        else:
+            assigned = any(s.id == target_user.id for s in current_user.assigned_mentees)
+
+        if not assigned:
             raise AuthorizationException(
                 message="Access denied: Mentors can only access their assigned students",
                 code="ACCESS_DENIED"
@@ -149,7 +165,31 @@ def check_data_access(current_user: User, target_user: User) -> None:
         return
 
     if current_user.role == UserRole.ADMIN.value:
-        if target_user.admin_id != current_user.id:
+        if target_user.id == current_user.id:
+            return
+
+        assigned = False
+        if target_user.role == UserRole.STUDENT.value:
+            if db:
+                from app.models.student import AdminStudent
+                assigned = db.query(AdminStudent).filter(
+                    AdminStudent.admin_id == current_user.id,
+                    AdminStudent.student_id == target_user.id
+                ).first() is not None
+            else:
+                assigned = any(s.id == target_user.id for s in current_user.assigned_students)
+        elif target_user.role == UserRole.MENTOR.value:
+            if db:
+                from app.models.student import AdminStudent, MentorStudent
+                admin_student_ids = db.query(AdminStudent.student_id).filter(AdminStudent.admin_id == current_user.id)
+                assigned = db.query(MentorStudent).filter(
+                    MentorStudent.mentor_id == target_user.id,
+                    MentorStudent.student_id.in_(admin_student_ids)
+                ).first() is not None
+            else:
+                assigned = any(any(m.id == target_user.id for m in s.assigned_mentors) for s in current_user.assigned_students)
+
+        if not assigned:
             raise AuthorizationException(
                 message="Access denied: Admins can only access their assigned mentors and students",
                 code="ACCESS_DENIED"

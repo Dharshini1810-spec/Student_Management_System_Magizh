@@ -1,10 +1,14 @@
 from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
+
+if TYPE_CHECKING:
+    from app.models.student import Student
+
 
 class User(Base):
     __tablename__ = "users"
@@ -18,10 +22,6 @@ class User(Base):
     is_first_login: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_approved: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    
-    mentor_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    admin_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    
     reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     
@@ -37,27 +37,38 @@ class User(Base):
         nullable=False
     )
 
-    # Self-referential relationships
-    mentor: Mapped[Optional[User]] = relationship(
-        "User",
-        remote_side=[id],
-        foreign_keys=[mentor_id],
-        back_populates="mentees"
+    # Student-specific relationships
+    student_profile: Mapped[Optional[Student]] = relationship(
+        "Student",
+        back_populates="user",
+        uselist=False,
+        foreign_keys="Student.id",
+        cascade="all, delete-orphan"
     )
-    mentees: Mapped[List[User]] = relationship(
-        "User",
-        foreign_keys=[mentor_id],
-        back_populates="mentor"
+
+    assigned_students: Mapped[List[Student]] = relationship(
+        "Student",
+        secondary="admin_students",
+        back_populates="assigned_admins"
     )
-    admin: Mapped[Optional[User]] = relationship(
-        "User",
-        remote_side=[id],
-        foreign_keys=[admin_id],
-        back_populates="assigned_users"
+
+    assigned_mentees: Mapped[List[Student]] = relationship(
+        "Student",
+        secondary="mentor_students",
+        back_populates="assigned_mentors"
     )
-    assigned_users: Mapped[List[User]] = relationship(
-        "User",
-        foreign_keys=[admin_id],
-        back_populates="admin"
-    )
+
+    @property
+    def admin_id(self) -> Optional[uuid.UUID]:
+        if self.role == "STUDENT" and self.student_profile and self.student_profile.assigned_admins:
+            return self.student_profile.assigned_admins[0].id
+        return None
+
+    @property
+    def mentor_id(self) -> Optional[uuid.UUID]:
+        if self.role == "STUDENT" and self.student_profile and self.student_profile.assigned_mentors:
+            return self.student_profile.assigned_mentors[0].id
+        return None
+
+
 

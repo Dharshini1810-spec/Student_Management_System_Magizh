@@ -8,6 +8,7 @@ from app.database.base import Base
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.attendance import Attendance, AttendanceRequest
 
 class Student(Base):
     __tablename__ = "students"
@@ -38,6 +39,18 @@ class Student(Base):
         "User",
         secondary="mentor_students",
         back_populates="assigned_mentees"
+    )
+
+    attendance_records: Mapped[List[Attendance]] = relationship(
+        "Attendance",
+        back_populates="student",
+        cascade="all, delete-orphan"
+    )
+
+    attendance_requests: Mapped[List[AttendanceRequest]] = relationship(
+        "AttendanceRequest",
+        back_populates="student",
+        cascade="all, delete-orphan"
     )
 
 class AdminStudent(Base):

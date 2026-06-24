@@ -6,7 +6,7 @@ from alembic import context
 # Import settings and target metadata from the app
 from app.core.config import settings
 from app.database.base import Base
-from app.models import User, Role, Permission, RolePermission, UserPermission
+from app.models import User, Role, Permission, RolePermission, UserPermission, Student, AdminStudent, MentorStudent, Attendance, AttendanceRequest, AttendanceSettings
 
 # Alembic Config object
 config = context.config
