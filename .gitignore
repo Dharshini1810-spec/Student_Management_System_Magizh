@@ -52,3 +52,7 @@ frontend/dist/
 *.sln
 *.swp
 *.swo
+*.env
+*.alembic
+*.__pycache__
+.antigravity/
