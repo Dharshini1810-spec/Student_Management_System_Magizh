@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.core.response import success_response
 from app.core.security import create_access_token
-from app.schemas.auth import LoginRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest
+from app.schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
 from app.schemas.user import UserRead
 from app.services.auth import AuthService
 from app.models.user import User
@@ -46,24 +46,6 @@ def read_current_user(current_user: User = Depends(get_current_user)):
         message="User profile retrieved successfully"
     )
 
-@router.post("/change-password")
-def change_password(
-    data: ChangePasswordRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Changes the logged-in user's password and clears their first-login state.
-    """
-    AuthService.change_password(
-        db, 
-        user=current_user, 
-        old_password=data.old_password, 
-        new_password=data.new_password
-    )
-    return success_response(
-        message="Password updated successfully"
-    )
 
 @router.post("/forgot-password")
 def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):

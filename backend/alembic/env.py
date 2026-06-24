@@ -6,6 +6,7 @@ from alembic import context
 # Import settings and target metadata from the app
 from app.core.config import settings
 from app.database.base import Base
+from app.models.user import User
 
 # Alembic Config object
 config = context.config

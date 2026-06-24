@@ -1,13 +1,11 @@
-from fastapi import FastAPI, Depends, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 import logging
 
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
-from app.core.response import success_response, error_response
-from app.api.deps import get_db
+from app.core.response import success_response
+
 from app.api.v1 import api_router
 
 # Configure logger
@@ -37,37 +35,6 @@ register_exception_handlers(app)
 # Register base API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-@app.get("/health", status_code=status.HTTP_200_OK)
-def health_check(db: Session = Depends(get_db)):
-    """
-    Service health check endpoint.
-    Verifies that the API service is up and can connect to the database.
-    """
-    health_status = {
-        "status": "healthy",
-        "services": {
-            "api": "online",
-            "database": "offline"
-        }
-    }
-    
-    try:
-        # Check db connection
-        db.execute(text("SELECT 1"))
-        health_status["services"]["database"] = "online"
-        return success_response(
-            data=health_status,
-            message="All services are operating normally."
-        )
-    except Exception as e:
-        logger.error(f"Health check failed database verification: {e}")
-        health_status["status"] = "degraded"
-        return error_response(
-            message="Database connection failed",
-            code="DATABASE_UNAVAILABLE",
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            details=health_status
-        )
 
 @app.get("/")
 def root():

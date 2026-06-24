@@ -7,4 +7,4 @@ class Base(DeclarativeBase):
     pass
 
 # Import all models here to register them with metadata
-from app.models.user import User  # noqa: F401
+# Note: Models should be imported in alembic env.py or models/__init__.py to avoid circular imports.

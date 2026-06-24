@@ -15,10 +15,6 @@ class Token(BaseModel):
     token_type: str = "bearer"
     role: str
 
-class ChangePasswordRequest(BaseModel):
-    old_password: str
-    new_password: str
-
 class ForgotPasswordRequest(BaseModel):
     email: str
 
