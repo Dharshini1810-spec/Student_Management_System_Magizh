@@ -9,7 +9,7 @@ from app.schemas.user import UserRead
 from app.services.auth import AuthService
 from app.models.user import User
 
-router = APIRouter()
+ router = APIRouter()
 
 @router.post("/login")
 def login(login_data: LoginRequest, db: Session = Depends(get_db)):
