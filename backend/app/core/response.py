@@ -1,5 +1,6 @@
 from typing import Any, Optional
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 def success_response(
     data: Any = None, 
@@ -11,11 +12,11 @@ def success_response(
     """
     return JSONResponse(
         status_code=status_code,
-        content={
+        content=jsonable_encoder({
             "success": True,
             "message": message,
             "data": data
-        }
+        })
     )
 
 def error_response(
@@ -39,5 +40,5 @@ def error_response(
         
     return JSONResponse(
         status_code=status_code,
-        content=content
+        content=jsonable_encoder(content)
     )

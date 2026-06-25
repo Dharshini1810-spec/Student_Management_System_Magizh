@@ -1,6 +1,16 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 from jose import jwt, JWTError
+
+# Monkey-patch bcrypt to resolve passlib wrap bug compatibility with bcrypt 4.0+/5.0.0
+import bcrypt
+_original_hashpw = bcrypt.hashpw
+def _patched_hashpw(password, salt):
+    if isinstance(password, bytes) and len(password) > 72:
+        password = password[:72]
+    return _original_hashpw(password, salt)
+bcrypt.hashpw = _patched_hashpw
+
 from passlib.context import CryptContext
 from app.core.config import settings
 
