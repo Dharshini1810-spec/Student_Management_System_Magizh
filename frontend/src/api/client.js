@@ -2,6 +2,16 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+let logoutHandler = null;
+
+/**
+ * Register a callback that will be invoked when a 401 is received,
+ * allowing the AuthContext to clear its state.
+ */
+export function setLogoutHandler(handler) {
+  logoutHandler = handler;
+}
+
 const client = axios.create({
   baseURL: API_URL,
   headers: {
@@ -9,7 +19,7 @@ const client = axios.create({
   },
 });
 
-// Request interceptor to automatically inject bearer tokens
+// Request interceptor – inject bearer token
 client.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,33 +28,33 @@ client.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to parse response bodies and handle token expiry
+// Response interceptor – unwrap envelope & handle 401
 client.interceptors.response.use(
   (response) => {
-    // Unwraps the standard success response envelope {status, message, data}
+    // Unwrap the standard success response envelope {status, message, data}
     return response.data;
   },
   (error) => {
     const response = error.response;
-    
-    // Format error fields using the standard backend envelope
+
     const formattedError = {
-      message: response?.data?.error?.message || error.message || 'An error occurred',
+      message: response?.data?.error?.message || response?.data?.message || error.message || 'An error occurred',
       code: response?.data?.error?.code || 'NETWORK_ERROR',
       status: response?.status || 500,
       details: response?.data?.error?.details || null,
     };
-    
-    // If a request returns 401 (Unauthorized), purge the stale token
+
+    // On 401, purge stale token and invoke logout handler
     if (response?.status === 401) {
       localStorage.removeItem('token');
+      if (logoutHandler) {
+        logoutHandler();
+      }
     }
-    
+
     return Promise.reject(formattedError);
   }
 );
