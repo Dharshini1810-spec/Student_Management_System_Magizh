@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import logging
 
 from app.core.config import settings
@@ -9,16 +10,35 @@ from app.core.response import success_response
 from sqlalchemy import text
 from app.database.session import SessionLocal
 from app.api.v1 import api_router
+from app.database.session import SessionLocal
+from app.database.init_db import init_db
 
 # Configure logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Runs startup routines (DB verification + seeding) on application start.
+    """
+    logger.info("Running startup routines...")
+    db = SessionLocal()
+    try:
+        init_db(db)
+    finally:
+        db.close()
+    logger.info("Startup routines complete.")
+    yield
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url=f"{settings.API_V1_STR}/docs",
     redoc_url=f"{settings.API_V1_STR}/redoc",
+    lifespan=lifespan,
 )
 
 # Set up CORS middleware
