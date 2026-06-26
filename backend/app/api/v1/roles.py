@@ -3,6 +3,30 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, get_current_user, require_super_admin, require_roles
 from app.core.permissions import UserRole
+from app.api.deps import get_db, get_current_user
+<<<<<<< HEAD
+from app.core.response import success_response
+from app.repositories.role_permission import RolePermissionRepository
+from app.schemas.role import RoleRead
+
+router = APIRouter()
+
+@router.get("")
+def list_roles(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieves all available roles in the system.
+    """
+    roles = RolePermissionRepository.get_all_roles(db)
+    roles_data = [RoleRead.model_validate(r).model_dump() for r in roles]
+    return success_response(
+        data=roles_data,
+        message="Roles retrieved successfully."
+    )
+=======
+from app.core.permissions import require_roles, UserRole
 from app.core.response import success_response
 from app.models.user import User
 from app.repositories.role import RoleRepository
@@ -46,3 +70,4 @@ def list_permissions(
     perms = PermissionRepository.get_all(db)
     data = [{"id": p.id, "name": p.name, "description": p.description} for p in perms]
     return success_response(data=data, message="Permissions retrieved successfully")
+>>>>>>> fcf518897bf1e7d68bc46b20f3d81c9d5f561424

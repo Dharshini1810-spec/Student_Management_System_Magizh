@@ -1,17 +1,48 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-# Use relative imports within the backend app package
-from ..deps import get_db, get_current_user
-from ...core.response import success_response
-from ...core.security import create_access_token
-from ...schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
-from ...schemas.role import ChangePasswordRequest
-from ...schemas.user import UserRead
-from ...services.auth import AuthService
-from ...models.user import User
+from app.api.deps import get_db, get_current_user
+from app.core.response import success_response
+from app.core.security import create_access_token
+from app.schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
+from app.schemas.role import ChangePasswordRequest
+from app.schemas.user import UserRead
+from app.services.auth import AuthService
+from app.models.user import User
 
 router = APIRouter()
+
+@router.post("/signup")
+def signup(data: SignupRequest, db: Session = Depends(get_db)):
+    """
+    Registration endpoint. Only allows Super Admin to register.
+    All other users (Admins, Mentors, Students) are created via user management routes.
+    """
+    # Check if a user already exists with this email
+    existing_user = UserRepository.get_by_email(db, data.email)
+    if existing_user:
+        raise APIException(
+            message="A user with this email already exists.",
+            code="EMAIL_ALREADY_EXISTS",
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Super admin registration logic
+    hashed_pw = get_password_hash(data.password)
+    new_user = UserRepository.create(
+        db=db,
+        email=data.email,
+        hashed_password=hashed_pw,
+        role=UserRole.SUPER_ADMIN.value,
+        is_first_login=False,  # They set their password during signup, so not first login requirement
+        is_approved=True
+    )
+
+    user_read = UserRead.model_validate(new_user)
+    return success_response(
+        data=user_read.model_dump(),
+        message="Super Admin registered successfully."
+    )
 
 @router.post("/login")
 def login(login_data: LoginRequest, db: Session = Depends(get_db)):
@@ -37,7 +68,11 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 def read_current_user(current_user: User = Depends(get_current_user)):
     """Retrieve current logged-in user info."""
     user_read = UserRead.model_validate(current_user)
-    return success_response(data=user_read.model_dump(), message="User profile retrieved successfully")
+    return success_response(
+        data=user_read.model_dump(),
+        message="User profile retrieved successfully"
+    )
+
 
 @router.post("/change-password")
 def change_password(
@@ -56,16 +91,26 @@ def change_password(
 
 @router.post("/forgot-password")
 def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    """Generate password reset token and return it for local testing."""
+    """
+    Generates a password recovery reset token.
+    For easy local testing, the token is returned directly in the response payload.
+    """
     reset_token = AuthService.forgot_password(db, email=data.email)
-    return success_response(data={"reset_token": reset_token}, message="Password reset instructions generated")
+    return success_response(
+        data={"reset_token": reset_token},
+        message="Password reset instructions generated successfully"
+    )
 
 @router.post("/reset-password")
 def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
-    """Reset password using a valid token."""
+    """
+    Resets the password utilizing a valid, non-expired recovery token.
+    """
     AuthService.reset_password(
-        db,
-        token=data.token,
-        new_password=data.new_password,
+        db, 
+        token=data.token, 
+        new_password=data.new_password
     )
-    return success_response(message="Password has been reset successfully")
+    return success_response(
+        message="Password has been reset successfully"
+    )

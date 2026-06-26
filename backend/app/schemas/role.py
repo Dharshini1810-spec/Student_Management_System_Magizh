@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+from pydantic import BaseModel, ConfigDict
+
+class RoleRead(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+=======
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -124,3 +134,4 @@ class UserListItem(BaseModel):
 class UpdateUserRequest(BaseModel):
     """Fields that can be updated by Admin/Super Admin."""
     is_active: Optional[bool] = None
+>>>>>>> fcf518897bf1e7d68bc46b20f3d81c9d5f561424

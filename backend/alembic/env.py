@@ -6,8 +6,12 @@ from alembic import context
 # Import settings and target metadata from the app
 from app.core.config import settings
 from app.database.base import Base
+<<<<<<< HEAD
+from app.models import User, Role, Permission, RolePermission, UserPermission, Student, AdminStudent, MentorStudent, Attendance, AttendanceRequest, AttendanceSettings
+=======
 from app.models.user import User
 from app.models.role import Role, Permission, RolePermission, UserPermission  # noqa: F401
+>>>>>>> fcf518897bf1e7d68bc46b20f3d81c9d5f561424
 
 # Alembic Config object
 config = context.config
