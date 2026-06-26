@@ -5,10 +5,12 @@ from app.models.role_permission import RolePermission
 from app.models.user_permission import UserPermission
 from app.models.student import Student, AdminStudent, MentorStudent
 from app.models.attendance import Attendance, AttendanceRequest, AttendanceSettings
+from app.models.todo import Todo
 
 __all__ = [
     "User", "Role", "Permission", "RolePermission", "UserPermission", 
     "Student", "AdminStudent", "MentorStudent",
-    "Attendance", "AttendanceRequest", "AttendanceSettings"
+    "Attendance", "AttendanceRequest", "AttendanceSettings",
+    "Todo"
 ]
 

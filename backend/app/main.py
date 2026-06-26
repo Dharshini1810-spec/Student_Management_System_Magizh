@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from app.api.v1 import auth, users
+from app.api.v1 import auth, users, todos
 from app.core.response import SuccessResponse
 
 app = FastAPI(title="Student Management System API", version="0.1.0")
@@ -17,6 +17,7 @@ app.add_middleware(
 # Register routers
 app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
 app.include_router(users.router, prefix="/api/v1", tags=["users"])
+app.include_router(todos.router, prefix="/api/v1/todos", tags=["todos"])
 
 @app.get("/health", response_model=SuccessResponse)
 def health_check():
