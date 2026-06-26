@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, get_current_user
+from app.core.exceptions import APIException
+from app.core.permissions import UserRole
 from app.core.response import success_response
-from app.core.security import create_access_token
-from app.schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
-from app.schemas.role import ChangePasswordRequest
+from app.core.security import create_access_token, get_password_hash
+from app.repositories.user import UserRepository
+from app.schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest, SignupRequest, ChangePasswordRequest
 from app.schemas.user import UserRead
 from app.services.auth import AuthService
 from app.models.user import User
@@ -52,7 +54,7 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         email=login_data.email,
         password=login_data.password,
     )
-    access_token = create_access_token(subject=user.id)
+    access_token = create_access_token({"sub": str(user.id)})
     user_read = UserRead.model_validate(user)
     return success_response(
         data={

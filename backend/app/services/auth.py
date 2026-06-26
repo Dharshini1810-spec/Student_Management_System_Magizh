@@ -45,26 +45,6 @@ class AuthService:
     @staticmethod
     def change_password(db: Session, user: User, current_password: str, new_password: str) -> User:
         """
-        Validates current password and updates it to the new password.
-        Also clears is_first_login flag.
-        """
-        if not verify_password(current_password, user.hashed_password):
-            raise APIException(
-                message="Incorrect current password",
-                code="INCORRECT_CURRENT_PASSWORD",
-                status_code=400
-            )
-
-        hashed = get_password_hash(new_password)
-        UserRepository.update(db, user, {
-            "hashed_password": hashed,
-            "is_first_login": False
-        })
-        return user
-
-    @staticmethod
-    def change_password(db: Session, user: User, current_password: str, new_password: str) -> User:
-        """
         Changes the password for an authenticated user.
         Used for first-login forced change and voluntary password updates.
         Validates the current password before applying the new one.
