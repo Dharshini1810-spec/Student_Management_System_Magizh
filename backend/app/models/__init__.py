@@ -6,11 +6,14 @@ from app.models.user_permission import UserPermission
 from app.models.student import Student, AdminStudent, MentorStudent
 from app.models.attendance import Attendance, AttendanceRequest, AttendanceSettings
 from app.models.todo import Todo
+from app.models.daily_content import DailyContent
+from app.models.project import Project
+from app.models.student_note import StudentNote
 
 __all__ = [
     "User", "Role", "Permission", "RolePermission", "UserPermission", 
     "Student", "AdminStudent", "MentorStudent",
     "Attendance", "AttendanceRequest", "AttendanceSettings",
-    "Todo"
+    "Todo", "DailyContent", "Project", "StudentNote"
 ]
 
