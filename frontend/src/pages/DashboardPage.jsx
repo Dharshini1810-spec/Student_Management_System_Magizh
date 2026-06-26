@@ -14,19 +14,18 @@ const ROLE_BADGES = {
 export default function DashboardPage() {
   const { user, isAdmin, isSuperAdmin } = useAuth();
   const [stats, setStats] = useState(null);
+  const [recentUsers, setRecentUsers] = useState([]);
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch health
         const healthRes = await client.get('/health').catch(() => null);
         setHealth(healthRes?.data || null);
 
-        // Fetch user stats (admin+ only)
         if (isAdmin) {
-          const usersRes = await usersApi.listUsers();
+          const usersRes = await usersApi.listUsers({ page_size: 20 });
           const users = usersRes.data || [];
           setStats({
             total: users.length,
@@ -36,6 +35,11 @@ export default function DashboardPage() {
             mentors: users.filter((u) => u.role === 'MENTOR').length,
             students: users.filter((u) => u.role === 'STUDENT').length,
           });
+          setRecentUsers(
+            [...users]
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(0, 5),
+          );
         }
       } catch {
         // silently fail
@@ -50,11 +54,11 @@ export default function DashboardPage() {
 
   const statCards = stats
     ? [
-        { label: 'Total Users', value: stats.total, icon: '👥', color: 'from-brand-500 to-brand-700' },
-        { label: 'Active Users', value: stats.active, icon: '✓', color: 'from-emerald-500 to-emerald-700' },
-        { label: 'Mentors', value: stats.mentors, icon: '🎓', color: 'from-teal-500 to-teal-700' },
-        { label: 'Students', value: stats.students, icon: '📚', color: 'from-sky-500 to-sky-700' },
-      ]
+      { label: 'Total Users', value: stats.total, icon: '👥', color: 'from-brand-500 to-brand-700' },
+      { label: 'Active Users', value: stats.active, icon: '✓', color: 'from-emerald-500 to-emerald-700' },
+      { label: 'Mentors', value: stats.mentors, icon: '🎓', color: 'from-teal-500 to-teal-700' },
+      { label: 'Students', value: stats.students, icon: '📚', color: 'from-sky-500 to-sky-700' },
+    ]
     : [];
 
   return (
@@ -92,32 +96,32 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-xl border border-slate-100 p-6 animate-pulse"
-                >
-                  <div className="h-4 bg-slate-200 rounded w-20 mb-4" />
-                  <div className="h-8 bg-slate-200 rounded w-14" />
-                </div>
-              ))
+              <div
+                key={i}
+                className="bg-white rounded-xl border border-slate-100 p-6 animate-pulse"
+              >
+                <div className="h-4 bg-slate-200 rounded w-20 mb-4" />
+                <div className="h-8 bg-slate-200 rounded w-14" />
+              </div>
+            ))
             : statCards.map((card, i) => (
-                <div
-                  key={card.label}
-                  className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-slide-up"
-                  style={{ animationDelay: `${i * 100}ms` }}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-slate-500">{card.label}</span>
-                    <span className={`
+              <div
+                key={card.label}
+                className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-slide-up"
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-slate-500">{card.label}</span>
+                  <span className={`
                       inline-flex items-center justify-center w-9 h-9 rounded-lg
                       bg-gradient-to-br ${card.color} text-white text-sm shadow-sm
                     `}>
-                      {card.icon}
-                    </span>
-                  </div>
-                  <p className="text-3xl font-extrabold text-slate-800">{card.value}</p>
+                    {card.icon}
+                  </span>
                 </div>
-              ))}
+                <p className="text-3xl font-extrabold text-slate-800">{card.value}</p>
+              </div>
+            ))}
         </div>
       )}
 
@@ -194,6 +198,44 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Recent Activity */}
+      {isAdmin && (
+        <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm animate-slide-up animation-delay-400">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">Recent Activity</h2>
+              <p className="text-sm text-slate-500">Latest account events from recent user activity.</p>
+            </div>
+            <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              Updated in real-time
+            </span>
+          </div>
+
+          {recentUsers.length === 0 ? (
+            <div className="text-sm text-slate-500">No recent activity available yet.</div>
+          ) : (
+            <div className="space-y-3">
+              {recentUsers.map((u) => (
+                <div key={u.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">{u.email}</p>
+                    <p className="text-xs text-slate-500">
+                      {u.role === 'SUPER_ADMIN' ? 'Super Admin' : u.role.charAt(0) + u.role.slice(1).toLowerCase()} • Created {new Date(u.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 text-xs font-medium text-slate-500">
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 ${u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                      {u.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                    <span className="text-slate-400">{u.is_first_login ? 'First login pending' : 'Active account'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Technology footer */}
       <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm animate-slide-up animation-delay-500">

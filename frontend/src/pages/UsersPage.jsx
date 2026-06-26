@@ -14,6 +14,7 @@ const ROLE_BADGES = {
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const { isSuperAdmin } = useAuth();
@@ -26,12 +27,43 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await usersApi.listUsers();
+      const res = await usersApi.listUsers({ page_size: 50 });
       setUsers(res.data || []);
     } catch (err) {
       toast.error(err.message || 'Failed to load users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (user) => {
+    setActionLoading(`toggle-${user.id}`);
+    try {
+      if (user.is_active) {
+        await usersApi.deactivateUser(user.id);
+        toast.success(`User ${user.email} has been deactivated`);
+      } else {
+        await usersApi.updateUser(user.id, { is_active: true });
+        toast.success(`User ${user.email} has been activated`);
+      }
+      await fetchUsers();
+    } catch (err) {
+      toast.error(err.message || 'Failed to update user status');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleResetPassword = async (user) => {
+    setActionLoading(`reset-${user.id}`);
+    try {
+      const res = await usersApi.adminResetPassword(user.id);
+      toast.success(`Reset token created for ${user.email}`);
+      console.log('Password reset token:', res.data?.reset_token);
+    } catch (err) {
+      toast.error(err.message || 'Failed to reset password');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -178,13 +210,33 @@ export default function UsersPage() {
                           })}
                         </span>
                       </td>
-                      <td className="py-3.5 px-5 text-right">
+                      <td className="py-3.5 px-5 text-right space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-end sm:gap-2">
                         <Link
                           to={`/users/${u.id}`}
                           className="text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
                         >
-                          View →
+                          View
                         </Link>
+                        {isSuperAdmin && u.role !== 'SUPER_ADMIN' && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleActive(u)}
+                              disabled={actionLoading === `toggle-${u.id}`}
+                              className="text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors"
+                            >
+                              {actionLoading === `toggle-${u.id}` ? 'Updating…' : u.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleResetPassword(u)}
+                              disabled={actionLoading === `reset-${u.id}`}
+                              className="text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
+                            >
+                              {actionLoading === `reset-${u.id}` ? 'Resetting…' : 'Reset'}
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   );

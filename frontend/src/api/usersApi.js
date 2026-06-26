@@ -3,9 +3,9 @@ import client from './client';
 const USERS_PREFIX = '/api/v1/users';
 
 export const usersApi = {
-  /** List all users (Admin / Super Admin). */
-  listUsers() {
-    return client.get(USERS_PREFIX);
+  /** List users with optional search and filter parameters. */
+  listUsers(params = {}) {
+    return client.get(USERS_PREFIX, { params });
   },
 
   /** Get a specific user by ID. */
