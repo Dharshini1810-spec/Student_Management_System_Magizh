@@ -1,19 +1,19 @@
 import uuid
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_user
-from app.core.permissions import require_permission, require_super_admin, require_roles, UserRole
-from app.core.response import success_response
-from app.models.user import User
-from app.schemas.role import (
+from ..deps import get_db, get_current_user
+from ...core.permissions import require_permission, require_super_admin, require_roles, UserRole
+from ...core.response import success_response
+from ...models.user import User
+from ...schemas.role import (
     CreateUserRequest,
     AssignPermissionRequest,
     RevokePermissionRequest,
     UpdateUserRequest,
 )
-from app.schemas.user import UserRead
-from app.services.user import UserService
+from ...schemas.user import UserRead
+from ...services.user import UserService
 
 router = APIRouter()
 
@@ -45,15 +45,30 @@ def create_user(
 def list_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.ADMIN])),
-):
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    search: str | None = Query(None),
+    role: str | None = Query(None),
+    is_active: bool | None = Query(None),
+    include_deleted: bool = Query(False),
+    ):
     """
     **Super Admin / Admin.**
 
-    Lists all users.
+    Lists users with pagination, search, and filters.
     - Super Admin sees everyone.
     - Admin sees all non-super-admin users.
     """
-    users = UserService.list_users(db, requester=current_user)
+    users = UserService.list_users(
+        db,
+        requester=current_user,
+        page=page,
+        page_size=page_size,
+        search=search,
+        role_filter=role,
+        is_active=is_active,
+        include_deleted=include_deleted,
+    )
     data = [UserRead.model_validate(u).model_dump() for u in users]
     return success_response(data=data, message=f"Retrieved {len(data)} users")
 

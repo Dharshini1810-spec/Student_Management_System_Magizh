@@ -3,13 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 
-from app.core.config import settings
-from app.core.exceptions import register_exception_handlers
-from app.core.response import success_response
+from .core.config import settings
+from .core.exceptions import register_exception_handlers
+from .core.response import success_response
 
-from app.api.v1 import api_router
-from app.database.session import SessionLocal
-from app.database.init_db import init_db
+from .api.v1 import api_router
+from .database.session import SessionLocal
+from .database.init_db import init_db
 
 # Configure logger
 logging.basicConfig(level=logging.INFO)

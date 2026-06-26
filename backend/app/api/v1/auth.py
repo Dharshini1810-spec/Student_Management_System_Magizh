@@ -1,55 +1,43 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_user
-from app.core.response import success_response
-from app.core.security import create_access_token
-from app.schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
-from app.schemas.role import ChangePasswordRequest
-from app.schemas.user import UserRead
-from app.services.auth import AuthService
-from app.models.user import User
+# Use relative imports within the backend app package
+from ..deps import get_db, get_current_user
+from ..core.response import success_response
+from ..core.security import create_access_token
+from ..schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
+from ..schemas.role import ChangePasswordRequest
+from ..schemas.user import UserRead
+from ..services.auth import AuthService
+from ..models.user import User
 
 router = APIRouter()
 
 @router.post("/login")
 def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    """
-    Authenticates a user and returns a JWT access token and user role details.
-    If `must_change_password` is true, the user must call `POST /auth/change-password`
-    before proceeding (first-login forced change).
-    """
+    """Authenticate a user and return a JWT access token and user details."""
     user = AuthService.authenticate(
-        db, 
-        email=login_data.email, 
-        password=login_data.password
+        db,
+        email=login_data.email,
+        password=login_data.password,
     )
-    
-    # Create the access token using the user's UUID
     access_token = create_access_token(subject=user.id)
     user_read = UserRead.model_validate(user)
-    
     return success_response(
         data={
             "access_token": access_token,
             "token_type": "bearer",
             "user": user_read.model_dump(),
-            "must_change_password": user.is_first_login,  # Frontend should redirect to change-password
+            "must_change_password": user.is_first_login,
         },
-        message="Login successful"
+        message="Login successful",
     )
 
 @router.get("/me")
 def read_current_user(current_user: User = Depends(get_current_user)):
-    """
-    Retrieves information about the currently logged-in user.
-    """
+    """Retrieve current logged-in user info."""
     user_read = UserRead.model_validate(current_user)
-    return success_response(
-        data=user_read.model_dump(),
-        message="User profile retrieved successfully"
-    )
-
+    return success_response(data=user_read.model_dump(), message="User profile retrieved successfully")
 
 @router.post("/change-password")
 def change_password(
@@ -57,45 +45,27 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Changes the password for the currently authenticated user.
-    This endpoint is used for:
-    - **First-login forced password change** (when `must_change_password=true`)
-    - **Voluntary password change**
-
-    Requires the current (or temporary) password and a new password (min 8 chars).
-    """
+    """Change password for current user (first-login or voluntary)."""
     AuthService.change_password(
         db=db,
         user=current_user,
         current_password=data.current_password,
         new_password=data.new_password,
     )
-    return success_response(message="Password changed successfully. Please log in again with your new password.")
-
+    return success_response(message="Password changed successfully. Please log in again.")
 
 @router.post("/forgot-password")
 def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    """
-    Generates a password recovery reset token.
-    For easy local testing, the token is returned directly in the response payload.
-    """
+    """Generate password reset token and return it for local testing."""
     reset_token = AuthService.forgot_password(db, email=data.email)
-    return success_response(
-        data={"reset_token": reset_token},
-        message="Password reset instructions generated successfully"
-    )
+    return success_response(data={"reset_token": reset_token}, message="Password reset instructions generated")
 
 @router.post("/reset-password")
 def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
-    """
-    Resets the password utilizing a valid, non-expired recovery token.
-    """
+    """Reset password using a valid token."""
     AuthService.reset_password(
-        db, 
-        token=data.token, 
-        new_password=data.new_password
+        db,
+        token=data.token,
+        new_password=data.new_password,
     )
-    return success_response(
-        message="Password has been reset successfully"
-    )
+    return success_response(message="Password has been reset successfully")

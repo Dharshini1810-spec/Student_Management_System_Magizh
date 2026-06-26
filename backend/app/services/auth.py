@@ -3,10 +3,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 
-from app.repositories.user import UserRepository
-from app.models.user import User
-from app.core.security import verify_password, get_password_hash
-from app.core.exceptions import AuthenticationException, APIException
+from ..repositories.user import UserRepository
+from ..models.user import User
+from ..core.security import verify_password, get_password_hash
+from ..core.exceptions import AuthenticationException, APIException
 
 class AuthService:
     @staticmethod

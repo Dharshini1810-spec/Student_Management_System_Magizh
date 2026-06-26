@@ -4,13 +4,13 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
-from app.core.security import decode_token
-from app.database.session import SessionLocal
-from app.core.exceptions import AuthenticationException, AuthorizationException
-from app.core.permissions import UserRole
-from app.models.user import User
-from app.repositories.user import UserRepository
+from ..core.config import settings
+from ..core.security import decode_token
+from ..database.session import SessionLocal
+from ..core.exceptions import AuthenticationException, AuthorizationException
+from ..core.permissions import UserRole
+from ..models.user import User
+from ..repositories.user import UserRepository
 
 # OAuth2PasswordBearer extracts the Bearer token from the Authorization header
 reusable_oauth2 = OAuth2PasswordBearer(

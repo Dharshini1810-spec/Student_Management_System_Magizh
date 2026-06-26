@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, get_current_user
+from app.core.permissions import require_super_admin
 from app.core.permissions import require_roles, UserRole
 from app.core.response import success_response
 from app.models.user import User
@@ -15,7 +16,7 @@ router = APIRouter()
 @router.get("/roles", response_model=None, tags=["Roles & Permissions"])
 def list_roles(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_super_admin()),
 ):
     """
     Returns all system roles with their assigned permissions.
@@ -37,7 +38,7 @@ def list_roles(
 @router.get("/permissions", response_model=None, tags=["Roles & Permissions"])
 def list_permissions(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_super_admin()),
 ):
     """
     Returns all system permissions.

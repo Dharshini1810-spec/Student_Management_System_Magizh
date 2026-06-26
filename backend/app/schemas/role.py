@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 
-from app.core.permissions import UserRole, PermissionName
+from ..core.permissions import UserRole, PermissionName
 
 
 # ─── Role Schemas ─────────────────────────────────────────────────────────────
