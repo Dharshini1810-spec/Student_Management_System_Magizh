@@ -9,6 +9,8 @@ from app.core.exceptions import APIException
 from app.core.response import success_response
 from app.models.user import User
 from app.repositories.user import UserRepository
+from app.services.activity_log import ActivityLogService
+from app.services.notification import NotificationService
 from typing import Optional
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 
@@ -192,6 +194,19 @@ def create_user(
     if not is_approved:
         message += " Pending Super Admin approval."
 
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="USER_CREATED",
+        description=f"Created {role_upper} user: {new_user.email}",
+        entity_type="user", entity_id=new_user.id
+    )
+    if role_upper == UserRole.STUDENT.value and (admin_id or mentor_id):
+        NotificationService.send_notification(
+            db=db, user_id=new_user.id,
+            title="Account Created",
+            message=f"Your student account has been created and assigned to {'an admin' if admin_id else ''}{' and ' if admin_id and mentor_id else ''}{'a mentor' if mentor_id else ''}.",
+            entity_type="user", entity_id=new_user.id
+        )
     return success_response(
         data=user_read.model_dump(),
         message=message
@@ -322,6 +337,13 @@ def update_user(
     # Perform update
     updated_user = UserRepository.update(db, target_user, update_dict)
     user_read = UserRead.model_validate(updated_user)
+    if target_user.role == UserRole.STUDENT.value and ("admin_id" in update_dict or "mentor_id" in update_dict):
+        NotificationService.send_notification(
+            db=db, user_id=target_user.id,
+            title="Assignment Updated",
+            message="Your admin/mentor assignment has been updated.",
+            entity_type="user", entity_id=target_user.id
+        )
     return success_response(
         data=user_read.model_dump(),
         message="User updated successfully."
@@ -345,6 +367,12 @@ def soft_delete_user(
         )
 
     UserRepository.update(db, target_user, {"is_deleted": True})
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="USER_DELETED",
+        description=f"Soft-deleted {target_user.role} user: {target_user.email}",
+        entity_type="user", entity_id=target_user.id
+    )
     return success_response(
         message="User soft-deleted successfully."
     )
@@ -367,6 +395,12 @@ def activate_user(
         )
 
     UserRepository.update(db, target_user, {"is_active": True})
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="USER_ACTIVATED",
+        description=f"Activated {target_user.role} user: {target_user.email}",
+        entity_type="user", entity_id=target_user.id
+    )
     return success_response(
         message="User activated successfully."
     )
@@ -389,6 +423,12 @@ def deactivate_user(
         )
 
     UserRepository.update(db, target_user, {"is_active": False})
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="USER_DEACTIVATED",
+        description=f"Deactivated {target_user.role} user: {target_user.email}",
+        entity_type="user", entity_id=target_user.id
+    )
     return success_response(
         message="User deactivated successfully."
     )

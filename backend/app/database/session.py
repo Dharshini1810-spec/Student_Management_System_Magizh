@@ -14,6 +14,15 @@ try:
             settings.DATABASE_URL,
             connect_args={"check_same_thread": False}
         )
+        from app.database.base import Base
+        from app.models import (
+            User, Role, Permission, RolePermission, UserPermission,
+            Student, AdminStudent, MentorStudent,
+            Attendance, AttendanceRequest, AttendanceSettings,
+            Todo, DailyContent, Project, StudentNote, ActivityLog, Notification
+        )
+        Base.metadata.create_all(bind=engine)
+        logger.info("Successfully initialized SQLite database schemas.")
     else:
         engine = create_engine(
             settings.DATABASE_URL,
@@ -33,13 +42,12 @@ if fallback_to_sqlite:
     )
     try:
         from app.database.base import Base
-        from app.models.user import User
-        from app.models.role import Role
-        from app.models.permission import Permission
-        from app.models.user_permission import UserPermission
-        from app.models.student import Student, AdminStudent, MentorStudent
-        from app.models.attendance import Attendance, AttendanceRequest, AttendanceSettings
-        
+        from app.models import (
+            User, Role, Permission, RolePermission, UserPermission,
+            Student, AdminStudent, MentorStudent,
+            Attendance, AttendanceRequest, AttendanceSettings,
+            Todo, DailyContent, Project, StudentNote, ActivityLog, Notification
+        )
         Base.metadata.create_all(bind=engine)
         logger.info("Successfully initialized SQLite fallback database schemas.")
     except Exception as create_err:

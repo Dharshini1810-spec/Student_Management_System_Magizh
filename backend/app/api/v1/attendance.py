@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
@@ -11,6 +12,8 @@ from app.models.user import User
 from app.models.attendance import Attendance, AttendanceRequest, AttendanceSettings
 from app.repositories.attendance import AttendanceRepository
 from app.repositories.student import StudentRepository
+from app.services.activity_log import ActivityLogService
+from app.services.notification import NotificationService
 from app.schemas.attendance import (
     AttendanceSettingsCreate, AttendanceSettingsRead,
     CheckInRequest, CheckOutRequest,
@@ -76,11 +79,23 @@ def student_check_in(
         )
 
     if result_code == "LATE_REQUEST_PENDING":
+        ActivityLogService.log_action(
+            db=db, user_id=current_user.id,
+            action="ATTENDANCE_LATE_REQUEST",
+            description=f"Late check-in request submitted at {datetime.now().strftime('%I:%M %p')}",
+            entity_type="attendance_request", entity_id=req.id
+        )
         return success_response(
             data={"request": map_request_to_read(req).model_dump(), "status": result_code},
             message="Check-in deadline passed. Late attendance request submitted successfully."
         )
 
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="ATTENDANCE_CHECK_IN",
+        description=f"Checked in at {attendance.check_in_time.strftime('%I:%M %p')}",
+        entity_type="attendance", entity_id=attendance.id
+    )
     return success_response(
         data={"attendance": map_attendance_to_read(attendance).model_dump(), "status": result_code},
         message="Checked in successfully."
@@ -109,11 +124,23 @@ def student_check_out(
     )
 
     if result_code == "LATE_REQUEST_PENDING":
+        ActivityLogService.log_action(
+            db=db, user_id=current_user.id,
+            action="ATTENDANCE_EARLY_DEPARTURE_REQUEST",
+            description=f"Early departure request submitted at {datetime.now().strftime('%I:%M %p')}",
+            entity_type="attendance_request", entity_id=req.id
+        )
         return success_response(
             data={"request": map_request_to_read(req).model_dump(), "status": result_code},
             message="Check-out deadline not reached. Early departure approval request submitted successfully."
         )
 
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="ATTENDANCE_CHECK_OUT",
+        description=f"Checked out at {attendance.check_out_time.strftime('%I:%M %p')}",
+        entity_type="attendance", entity_id=attendance.id
+    )
     return success_response(
         data={"attendance": map_attendance_to_read(attendance).model_dump(), "status": result_code},
         message="Checked out successfully."
@@ -252,6 +279,19 @@ def approve_attendance_request(
     check_data_access(current_user, req.student.user)
 
     approved_req = AttendanceRepository.approve_request(db, id, current_user.id)
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="ATTENDANCE_REQUEST_APPROVED",
+        description=f"Approved {'check-in' if approved_req.request_type == 'CHECK_IN' else 'check-out'} late request for student",
+        entity_type="attendance_request", entity_id=approved_req.id
+    )
+    request_type_label = "check-in" if approved_req.request_type == "CHECK_IN" else "check-out"
+    NotificationService.send_notification(
+        db=db, user_id=approved_req.student_id,
+        title="Attendance Request Approved",
+        message=f"Your late {request_type_label} request has been approved.",
+        entity_type="attendance_request", entity_id=approved_req.id
+    )
     return success_response(
         data=map_request_to_read(approved_req).model_dump(),
         message="Attendance request approved."
@@ -285,6 +325,19 @@ def reject_attendance_request(
     check_data_access(current_user, req.student.user)
 
     rejected_req = AttendanceRepository.reject_request(db, id, current_user.id)
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="ATTENDANCE_REQUEST_REJECTED",
+        description=f"Rejected {'check-in' if rejected_req.request_type == 'CHECK_IN' else 'check-out'} late request for student",
+        entity_type="attendance_request", entity_id=rejected_req.id
+    )
+    request_type_label = "check-in" if rejected_req.request_type == "CHECK_IN" else "check-out"
+    NotificationService.send_notification(
+        db=db, user_id=rejected_req.student_id,
+        title="Attendance Request Rejected",
+        message=f"Your late {request_type_label} request has been rejected.",
+        entity_type="attendance_request", entity_id=rejected_req.id
+    )
     return success_response(
         data=map_request_to_read(rejected_req).model_dump(),
         message="Attendance request rejected."

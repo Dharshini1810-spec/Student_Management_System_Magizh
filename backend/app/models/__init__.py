@@ -9,11 +9,14 @@ from app.models.todo import Todo
 from app.models.daily_content import DailyContent
 from app.models.project import Project
 from app.models.student_note import StudentNote
+from app.models.activity_log import ActivityLog
+from app.models.notification import Notification
 
 __all__ = [
     "User", "Role", "Permission", "RolePermission", "UserPermission", 
     "Student", "AdminStudent", "MentorStudent",
     "Attendance", "AttendanceRequest", "AttendanceSettings",
-    "Todo", "DailyContent", "Project", "StudentNote"
+    "Todo", "DailyContent", "Project", "StudentNote", "ActivityLog",
+    "Notification"
 ]
 

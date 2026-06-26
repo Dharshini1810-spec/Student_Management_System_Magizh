@@ -9,6 +9,8 @@ from app.core.response import success_response
 from app.models.user import User
 from app.models.project import Project
 from app.services.project import ProjectService
+from app.services.activity_log import ActivityLogService
+from app.services.notification import NotificationService
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectRead, ProjectStatusUpdate
 from starlette import status
 
@@ -46,6 +48,19 @@ def create_project(
         tech_stack=payload.tech_stack,
         deadline=payload.deadline
     )
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="PROJECT_CREATED",
+        description=f"Created project: {project.name}",
+        entity_type="project", entity_id=project.id
+    )
+    if payload.assigned_to:
+        NotificationService.send_notification(
+            db=db, user_id=payload.assigned_to,
+            title="Project Assigned",
+            message=f"You have been assigned a project: {project.name}",
+            entity_type="project", entity_id=project.id
+        )
     return success_response(
         data=map_project_to_read(project).model_dump(),
         message="Project created successfully."
@@ -84,10 +99,19 @@ def update_project(
     db: Session = Depends(get_db)
 ):
     update_data = payload.model_dump(exclude_unset=True)
+    project = ProjectService.get_project(db=db, project_id=id)
+    old_assigned_to = project.assigned_to
     project = ProjectService.update_project(
         db=db, requester=current_user,
         project_id=id, update_data=update_data
     )
+    if "assigned_to" in update_data and update_data["assigned_to"] and update_data["assigned_to"] != old_assigned_to:
+        NotificationService.send_notification(
+            db=db, user_id=update_data["assigned_to"],
+            title="Project Assigned",
+            message=f"You have been assigned a project: {project.name}",
+            entity_type="project", entity_id=project.id
+        )
     return success_response(
         data=map_project_to_read(project).model_dump(),
         message="Project updated successfully."
@@ -103,6 +127,12 @@ def update_project_status(
     project = ProjectService.update_status(
         db=db, requester=current_user,
         project_id=id, status=payload.status
+    )
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="PROJECT_STATUS_UPDATED",
+        description=f"Updated project '{project.name}' status to {payload.status}",
+        entity_type="project", entity_id=project.id
     )
     return success_response(
         data=map_project_to_read(project).model_dump(),

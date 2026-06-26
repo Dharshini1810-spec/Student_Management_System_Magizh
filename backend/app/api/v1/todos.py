@@ -10,6 +10,8 @@ from app.core.response import success_response
 from app.models.user import User
 from app.models.todo import Todo
 from app.services.todo import TodoService
+from app.services.activity_log import ActivityLogService
+from app.services.notification import NotificationService
 from app.schemas.todo import TodoCreate, TodoUpdate, TodoRead, TodoStatusUpdate
 
 router = APIRouter()
@@ -46,6 +48,19 @@ def create_todo(
         deadline=payload.deadline,
         is_personal=False
     )
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="TODO_CREATED",
+        description=f"Created todo: {todo.title}",
+        entity_type="todo", entity_id=todo.id
+    )
+    if payload.assigned_to:
+        NotificationService.send_notification(
+            db=db, user_id=payload.assigned_to,
+            title="Todo Assigned",
+            message=f"You have been assigned a todo: {todo.title}",
+            entity_type="todo", entity_id=todo.id
+        )
     return success_response(
         data=map_todo_to_read(todo).model_dump(),
         message="Todo created successfully."
@@ -72,6 +87,12 @@ def create_personal_todo(
         description=payload.description,
         deadline=payload.deadline,
         is_personal=True
+    )
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="PERSONAL_TODO_CREATED",
+        description=f"Created personal todo: {todo.title}",
+        entity_type="todo", entity_id=todo.id
     )
     return success_response(
         data=map_todo_to_read(todo).model_dump(),
@@ -130,6 +151,12 @@ def update_todo_status(
     todo = TodoService.update_status(
         db=db, requester=current_user,
         todo_id=id, status=payload.status
+    )
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="TODO_STATUS_UPDATED",
+        description=f"Updated todo '{todo.title}' status to {payload.status}",
+        entity_type="todo", entity_id=todo.id
     )
     return success_response(
         data=map_todo_to_read(todo).model_dump(),

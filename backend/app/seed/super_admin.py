@@ -60,7 +60,9 @@ ROLE_DESCRIPTIONS: dict[str, str] = {
 }
 
 
-from ..models.role import Role, Permission, RolePermission
+from ..models.role import Role
+from ..models.permission import Permission
+from ..models.role_permission import RolePermission
 
 def seed_roles_and_permissions(db: Session) -> None:
     """
