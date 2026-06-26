@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_user
-from app.core.permissions import require_super_admin
-from app.core.permissions import require_roles, UserRole
+from app.api.deps import get_db, get_current_user, require_super_admin, require_roles
+from app.core.permissions import UserRole
 from app.core.response import success_response
 from app.models.user import User
 from app.repositories.role import RoleRepository

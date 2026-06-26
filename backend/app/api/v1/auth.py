@@ -3,13 +3,13 @@ from sqlalchemy.orm import Session
 
 # Use relative imports within the backend app package
 from ..deps import get_db, get_current_user
-from ..core.response import success_response
-from ..core.security import create_access_token
-from ..schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
-from ..schemas.role import ChangePasswordRequest
-from ..schemas.user import UserRead
-from ..services.auth import AuthService
-from ..models.user import User
+from ...core.response import success_response
+from ...core.security import create_access_token
+from ...schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
+from ...schemas.role import ChangePasswordRequest
+from ...schemas.user import UserRead
+from ...services.auth import AuthService
+from ...models.user import User
 
 router = APIRouter()
 

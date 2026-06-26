@@ -1,67 +1,23 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import logging
+from starlette.middleware.cors import CORSMiddleware
+from app.api.v1 import auth, users
+from app.core.response import SuccessResponse
 
-from .core.config import settings
-from .core.exceptions import register_exception_handlers
-from .core.response import success_response
+app = FastAPI(title="Student Management System API", version="0.1.0")
 
-from .api.v1 import api_router
-from .database.session import SessionLocal
-from .database.init_db import init_db
-
-# Configure logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Runs startup routines (DB verification + seeding) on application start.
-    """
-    logger.info("Running startup routines...")
-    db = SessionLocal()
-    try:
-        init_db(db)
-    finally:
-        db.close()
-    logger.info("Startup routines complete.")
-    yield
-
-
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    docs_url=f"{settings.API_V1_STR}/docs",
-    redoc_url=f"{settings.API_V1_STR}/redoc",
-    lifespan=lifespan,
+# CORS (allow all for dev)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Set up CORS middleware
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# Register routers
+app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
+app.include_router(users.router, prefix="/api/v1", tags=["users"])
 
-# Register central global exception handlers
-register_exception_handlers(app)
-
-# Register base API router
-app.include_router(api_router, prefix=settings.API_V1_STR)
-
-
-@app.get("/")
-def root():
-    """
-    Root endpoint redirecting/confirming the API version and status.
-    """
-    return success_response(
-        data={"version": "1.0.0", "project": settings.PROJECT_NAME},
-        message="Welcome to the Student Management System API."
-    )
+@app.get("/health", response_model=SuccessResponse)
+def health_check():
+    return SuccessResponse(message="ok")

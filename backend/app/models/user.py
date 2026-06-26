@@ -14,7 +14,7 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(50), nullable=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    first_login: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_first_login: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     
     reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

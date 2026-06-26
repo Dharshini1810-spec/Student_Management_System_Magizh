@@ -2,8 +2,8 @@ import uuid
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
-from ..deps import get_db, get_current_user
-from ...core.permissions import require_permission, require_super_admin, require_roles, UserRole
+from ..deps import get_db, get_current_user, require_permission, require_super_admin, require_roles
+from ...core.permissions import UserRole
 from ...core.response import success_response
 from ...models.user import User
 from ...schemas.role import (

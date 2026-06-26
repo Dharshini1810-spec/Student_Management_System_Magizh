@@ -1,43 +1,18 @@
-from typing import Any, Optional
-from fastapi.responses import JSONResponse
+﻿from pydantic import BaseModel
+from typing import Generic, TypeVar, Optional
 
-def success_response(
-    data: Any = None, 
-    message: str = "Operation completed successfully", 
-    status_code: int = 200
-) -> JSONResponse:
-    """
-    Returns a standardized JSON response for successful operations.
-    """
-    return JSONResponse(
-        status_code=status_code,
-        content={
-            "success": True,
-            "message": message,
-            "data": data
-        }
-    )
+T = TypeVar('T')
 
-def error_response(
-    message: str, 
-    code: str = "BAD_REQUEST", 
-    status_code: int = 400, 
-    details: Optional[Any] = None
-) -> JSONResponse:
-    """
-    Returns a standardized JSON response for error states.
-    """
-    content = {
-        "success": False,
-        "message": message,
-        "error": {
-            "code": code
-        }
-    }
-    if details is not None:
-        content["error"]["details"] = details
-        
-    return JSONResponse(
-        status_code=status_code,
-        content=content
-    )
+class StandardResponse(BaseModel, Generic[T]):
+    success: bool = True
+    message: Optional[str] = None
+    data: Optional[T] = None
+
+class SuccessResponse(BaseModel):
+    success: bool = True
+    message: Optional[str] = None
+    data: Optional[dict] = None
+
+def success_response(data=None, message: str = "Success") -> SuccessResponse:
+    """Helper function to return standardized success responses."""
+    return SuccessResponse(success=True, message=message, data=data)

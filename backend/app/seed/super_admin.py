@@ -60,13 +60,13 @@ ROLE_DESCRIPTIONS: dict[str, str] = {
 }
 
 
+from ..models.role import Role, Permission, RolePermission
+
 def seed_roles_and_permissions(db: Session) -> None:
     """
     Idempotently seeds all roles and permissions, then assigns them.
     Safe to run on every startup.
     """
-from ..models.role import Role, Permission, RolePermission
-
     logger.info("Seeding roles and permissions...")
 
     # 1. Seed Roles

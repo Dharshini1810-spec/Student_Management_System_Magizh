@@ -2,13 +2,14 @@ import uuid
 from sqlalchemy.orm import Session
 
 from ..core.exceptions import APIException, AuthorizationException, NotFoundException
-from ..core.permissions import UserRole, PermissionName, _get_all_user_permissions
+from ..core.permissions import UserRole, PermissionName
 from ..core.security import get_password_hash
 from ..models.user import User
 from ..repositories.user import UserRepository
 from ..repositories.role import RoleRepository
 from ..repositories.permission import PermissionRepository
 from ..schemas.role import CreateUserRequest, UserPermissionsResponse
+from .auth import AuthService
 
 
 class UserService:
@@ -108,28 +109,7 @@ class UserService:
             .limit(page_size)
             .all()
         )
-        return users        """
-        Returns a list of users.
-        - Super Admin sees everyone.
-        - Admin sees all non-super-admin users (further filtering in future phases).
-        - Others cannot call this endpoint (enforced at route level).
-        """
-        if requester.role == UserRole.SUPER_ADMIN:
-            return db.query(User).order_by(User.created_at.desc()).all()
-
-        if requester.role == UserRole.ADMIN:
-            # Admin sees all non-super-admin users
-            return (
-                db.query(User)
-                .filter(User.role != UserRole.SUPER_ADMIN)
-                .order_by(User.created_at.desc())
-                .all()
-            )
-
-        raise AuthorizationException(
-            message="You do not have permission to list users",
-            code="INSUFFICIENT_PERMISSIONS"
-        )
+        return users
 
     @staticmethod
     def get_user(db: Session, requester: User, user_id: uuid.UUID) -> User:
@@ -334,7 +314,6 @@ class UserService:
             )
 
         # Delegate to auth service's forgot_password flow
-from .auth import AuthService
         token = AuthService.forgot_password(db, email=target.email)
         return {
             "user_id": str(user_id),
