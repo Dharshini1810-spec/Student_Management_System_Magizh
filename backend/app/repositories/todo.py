@@ -7,7 +7,7 @@ from app.models.user import User
 
 class TodoRepository:
     @staticmethod
-    def create(db: Session, title: str, created_by: uuid.UUID, assigned_to: Optional[uuid.UUID] = None, description: Optional[str] = None, deadline: Optional[datetime] = None, is_personal: bool = False) -> Todo:
+    def create(db: Session, title: str, created_by: uuid.UUID, assigned_to: Optional[uuid.UUID] = None, description: Optional[str] = None, deadline: Optional[datetime] = None, is_personal: bool = False, approval_status: str = "approved") -> Todo:
         todo = Todo(
             title=title,
             description=description,
@@ -15,7 +15,8 @@ class TodoRepository:
             assigned_to=assigned_to,
             deadline=deadline,
             is_personal=is_personal,
-            status="pending"
+            status="pending",
+            approval_status=approval_status
         )
         db.add(todo)
         db.commit()
@@ -30,6 +31,14 @@ class TodoRepository:
     def list_by_user(db: Session, user_id: uuid.UUID) -> List[Todo]:
         return db.query(Todo).filter(
             Todo.assigned_to == user_id,
+            Todo.is_deleted == False
+        ).order_by(Todo.created_at.desc()).all()
+
+    @staticmethod
+    def list_assigned_to_user_approved(db: Session, user_id: uuid.UUID) -> List[Todo]:
+        return db.query(Todo).filter(
+            Todo.assigned_to == user_id,
+            Todo.approval_status == "approved",
             Todo.is_deleted == False
         ).order_by(Todo.created_at.desc()).all()
 

@@ -48,25 +48,29 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="w-full max-w-md mx-4 animate-scale-in">
-        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-950 via-brand-900 to-purple-900" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse animation-delay-500" />
+
+      <div className="relative z-10 w-full max-w-md mx-4 animate-scale-in">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl shadow-black/20 p-8 md:p-10">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 mb-4">
-              <svg className="w-7 h-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 border border-white/20 mb-4">
+              <svg className="w-7 h-7 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-slate-800">Change Your Password</h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <h1 className="text-xl font-bold text-white">Change Your Password</h1>
+            <p className="text-white/60 text-sm mt-1">
               You must set a new password before continuing.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5" id="change-password-form">
             <div>
-              <label htmlFor="current-password" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="current-password" className="block text-sm font-medium text-white/80 mb-1.5">
                 Current / Temporary Password
               </label>
               <input
@@ -80,7 +84,7 @@ export default function ChangePasswordPage() {
             </div>
 
             <div>
-              <label htmlFor="new-password" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="new-password" className="block text-sm font-medium text-white/80 mb-1.5">
                 New Password
               </label>
               <input
@@ -92,15 +96,15 @@ export default function ChangePasswordPage() {
                 placeholder="Min 8 characters"
               />
               {newPassword && !passwordValid && (
-                <p className="text-xs text-rose-500 mt-1">Must be at least 8 characters</p>
+                <p className="text-xs text-rose-400 mt-1">Must be at least 8 characters</p>
               )}
               {newPassword && passwordValid && (
-                <p className="text-xs text-emerald-600 mt-1">✓ Password meets requirements</p>
+                <p className="text-xs text-emerald-400 mt-1">✓ Password meets requirements</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-white/80 mb-1.5">
                 Confirm New Password
               </label>
               <input
@@ -112,10 +116,10 @@ export default function ChangePasswordPage() {
                 placeholder="Re-enter new password"
               />
               {confirmPassword && !passwordsMatch && (
-                <p className="text-xs text-rose-500 mt-1">Passwords do not match</p>
+                <p className="text-xs text-rose-400 mt-1">Passwords do not match</p>
               )}
               {confirmPassword && passwordsMatch && (
-                <p className="text-xs text-emerald-600 mt-1">✓ Passwords match</p>
+                <p className="text-xs text-emerald-400 mt-1">✓ Passwords match</p>
               )}
             </div>
 

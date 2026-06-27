@@ -20,6 +20,9 @@ class ProjectUpdate(BaseModel):
 class ProjectStatusUpdate(BaseModel):
     status: str
 
+class ProjectApprovalUpdate(BaseModel):
+    approval_status: str
+
 class ProjectRead(BaseModel):
     id: uuid.UUID
     name: str
@@ -31,6 +34,7 @@ class ProjectRead(BaseModel):
     assigner_name: Optional[str] = None
     deadline: Optional[datetime] = None
     status: str
+    approval_status: str
     is_deleted: bool
     created_at: datetime
     updated_at: datetime

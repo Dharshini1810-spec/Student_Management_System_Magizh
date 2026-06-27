@@ -1,40 +1,40 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import authApi from '../api/authApi';
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [shakeError, setShakeError] = useState(false);
 
-  const { login } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!email || !password || !confirmPassword) {
       toast.warning('Please fill in all fields');
+      return;
+    }
+    if (password.length < 8) {
+      toast.warning('Password must be at least 8 characters');
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.warning('Passwords do not match');
       return;
     }
 
     setLoading(true);
     try {
-      const result = await login(email, password);
-      toast.success('Login successful!');
-
-      if (result.must_change_password) {
-        navigate('/change-password');
-      } else {
-        navigate('/');
-      }
+      await authApi.signup(email, password);
+      toast.success('Super Admin account created. You can now sign in.');
+      navigate('/login');
     } catch (err) {
-      setShakeError(true);
-      setTimeout(() => setShakeError(false), 600);
-      toast.error(err.message || 'Invalid credentials');
+      toast.error(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -42,17 +42,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Animated gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-950 via-brand-900 to-purple-900" />
-      
-      {/* Animated orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse animation-delay-500" />
       <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl animate-pulse animation-delay-300" />
-
-      {/* Grid overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
+      <div className="absolute inset-0 opacity-[0.03]"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
@@ -60,38 +54,22 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Login Card */}
-      <div
-        className={`
-          relative z-10 w-full max-w-md mx-4
-          bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl
-          shadow-2xl shadow-black/20
-          p-8 md:p-10
-          animate-scale-in
-          ${shakeError ? 'animate-shake' : ''}
-        `}
-      >
-        {/* Logo */}
+      <div className="relative z-10 w-full max-w-md mx-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl shadow-black/20 p-8 md:p-10 animate-scale-in">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 shadow-lg shadow-brand-500/30 mb-4">
-            <span className="text-white text-2xl font-black">M</span>
+            <span className="text-white text-2xl font-black">SA</span>
           </div>
-          <h1 className="text-2xl font-bold text-white mt-2">Welcome Back</h1>
-          <p className="text-white/60 text-sm mt-1">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-white mt-2">Create Account</h1>
+          <p className="text-white/60 text-sm mt-1">Register as Super Admin</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5" id="login-form">
-          {/* Email */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="login-email" className="block text-sm font-medium text-white/80 mb-1.5">
+            <label htmlFor="signup-email" className="block text-sm font-medium text-white/80 mb-1.5">
               Email Address
             </label>
-            <input
-              id="login-email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+            <input id="signup-email" type="email" autoComplete="email"
+              value={email} onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@example.com"
               className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40
                          focus:outline-none focus:ring-2 focus:ring-brand-400/50 focus:border-brand-400/50
@@ -99,28 +77,21 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
-            <label htmlFor="login-password" className="block text-sm font-medium text-white/80 mb-1.5">
+            <label htmlFor="signup-password" className="block text-sm font-medium text-white/80 mb-1.5">
               Password
             </label>
             <div className="relative">
-              <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+              <input id="signup-password"
+                type={showPassword ? 'text' : 'password'} autoComplete="new-password"
+                value={password} onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min 8 characters"
                 className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40
                            focus:outline-none focus:ring-2 focus:ring-brand-400/50 focus:border-brand-400/50
                            transition-all duration-200 backdrop-blur-sm pr-12"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors p-1"
-                tabIndex={-1}
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors p-1" tabIndex={-1}
               >
                 {showPassword ? (
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -136,21 +107,20 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Forgot password link */}
-          <div className="text-right">
-            <Link
-              to="/forgot-password"
-              className="text-xs text-brand-300 hover:text-brand-200 transition-colors font-medium"
-            >
-              Forgot password?
-            </Link>
+          <div>
+            <label htmlFor="signup-confirm" className="block text-sm font-medium text-white/80 mb-1.5">
+              Confirm Password
+            </label>
+            <input id="signup-confirm" type="password" autoComplete="new-password"
+              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter password"
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40
+                         focus:outline-none focus:ring-2 focus:ring-brand-400/50 focus:border-brand-400/50
+                         transition-all duration-200 backdrop-blur-sm"
+            />
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            id="login-submit"
+          <button type="submit" disabled={loading}
             className="w-full py-3.5 rounded-xl font-semibold text-white
                        bg-gradient-to-r from-brand-600 to-purple-600
                        shadow-lg shadow-brand-600/30
@@ -162,25 +132,21 @@ export default function LoginPage() {
             {loading ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Signing in...</span>
+                <span>Creating account...</span>
               </>
-            ) : (
-              'Sign In'
-            )}
+            ) : 'Create Account'}
           </button>
         </form>
 
-        {/* Signup link */}
         <div className="text-center mt-5">
           <p className="text-white/40 text-xs">
-            New Super Admin?{' '}
-            <Link to="/signup" className="text-brand-300 hover:text-brand-200 transition-colors font-medium">
-              Create account
+            Already have an account?{' '}
+            <Link to="/login" className="text-brand-300 hover:text-brand-200 transition-colors font-medium">
+              Sign in
             </Link>
           </p>
         </div>
 
-        {/* Footer text */}
         <p className="text-center text-white/40 text-xs mt-4">
           Student Management System &copy; {new Date().getFullYear()}
         </p>

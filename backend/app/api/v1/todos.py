@@ -12,7 +12,7 @@ from app.models.todo import Todo
 from app.services.todo import TodoService
 from app.services.activity_log import ActivityLogService
 from app.services.notification import NotificationService
-from app.schemas.todo import TodoCreate, TodoUpdate, TodoRead, TodoStatusUpdate
+from app.schemas.todo import TodoCreate, TodoUpdate, TodoRead, TodoStatusUpdate, TodoApprovalUpdate
 
 router = APIRouter()
 
@@ -27,6 +27,7 @@ def map_todo_to_read(todo: Todo) -> TodoRead:
         assignee_name=todo.assignee.name if todo.assignee else None,
         deadline=todo.deadline,
         status=todo.status,
+        approval_status=todo.approval_status,
         is_personal=todo.is_personal,
         is_deleted=todo.is_deleted,
         created_at=todo.created_at,
@@ -161,6 +162,86 @@ def update_todo_status(
     return success_response(
         data=map_todo_to_read(todo).model_dump(),
         message="Todo status updated successfully."
+    )
+
+@router.get("/pending-approval", response_model=dict)
+def list_pending_approval_todos(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.role == UserRole.SUPER_ADMIN.value:
+        from app.repositories.todo import TodoRepository
+        all_todos = TodoRepository.list_all(db)
+        pending = [t for t in all_todos if t.approval_status == "pending"]
+    elif current_user.role == UserRole.ADMIN.value:
+        pending = TodoService.list_pending_approval_for_admin(db, current_user.id)
+    else:
+        raise APIException(
+            message="Only Admins and Super Admins can view pending approvals",
+            code="FORBIDDEN",
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    return success_response(
+        data={"todos": [map_todo_to_read(t).model_dump() for t in pending]},
+        message="Pending approval todos retrieved."
+    )
+
+@router.patch("/{id}/approve", response_model=dict)
+def approve_todo(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    todo = TodoService.approve_todo(db=db, requester=current_user, todo_id=id)
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="TODO_APPROVED",
+        description=f"Approved todo: {todo.title}",
+        entity_type="todo", entity_id=todo.id
+    )
+    if todo.assigned_to:
+        NotificationService.send_notification(
+            db=db, user_id=todo.assigned_to,
+            title="Todo Approved",
+            message=f"Your todo '{todo.title}' has been approved.",
+            entity_type="todo", entity_id=todo.id
+        )
+    if todo.created_by:
+        NotificationService.send_notification(
+            db=db, user_id=todo.created_by,
+            title="Todo Approved",
+            message=f"The todo '{todo.title}' you created has been approved.",
+            entity_type="todo", entity_id=todo.id
+        )
+    return success_response(
+        data=map_todo_to_read(todo).model_dump(),
+        message="Todo approved successfully."
+    )
+
+@router.patch("/{id}/reject", response_model=dict)
+def reject_todo(
+    id: uuid.UUID,
+    payload: TodoApprovalUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    todo = TodoService.reject_todo(db=db, requester=current_user, todo_id=id)
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="TODO_REJECTED",
+        description=f"Rejected todo: {todo.title}",
+        entity_type="todo", entity_id=todo.id
+    )
+    if todo.created_by:
+        NotificationService.send_notification(
+            db=db, user_id=todo.created_by,
+            title="Todo Rejected",
+            message=f"The todo '{todo.title}' has been rejected.",
+            entity_type="todo", entity_id=todo.id
+        )
+    return success_response(
+        data=map_todo_to_read(todo).model_dump(),
+        message="Todo rejected successfully."
     )
 
 @router.delete("/{id}", response_model=dict)

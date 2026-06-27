@@ -5,10 +5,10 @@ import usersApi from '../api/usersApi';
 import client from '../api/client';
 
 const ROLE_BADGES = {
-  SUPER_ADMIN: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', label: 'Super Admin' },
-  ADMIN: { bg: 'bg-brand-50', text: 'text-brand-700', border: 'border-brand-200', label: 'Admin' },
-  MENTOR: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', label: 'Mentor' },
-  STUDENT: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', label: 'Student' },
+  SUPER_ADMIN: { bg: 'bg-purple-500/20', text: 'text-purple-300', border: 'border-purple-500/30', label: 'Super Admin' },
+  ADMIN: { bg: 'bg-brand-500/20', text: 'text-brand-300', border: 'border-brand-500/30', label: 'Admin' },
+  MENTOR: { bg: 'bg-emerald-500/20', text: 'text-emerald-300', border: 'border-emerald-500/30', label: 'Mentor' },
+  STUDENT: { bg: 'bg-sky-500/20', text: 'text-sky-300', border: 'border-sky-500/30', label: 'Student' },
 };
 
 export default function DashboardPage() {
@@ -82,7 +82,7 @@ export default function DashboardPage() {
               {roleBadge.label}
             </span>
           </div>
-          <p className="text-brand-100 max-w-xl text-sm md:text-base">
+              <p className="text-white/70 max-w-xl text-sm md:text-base">
             {user?.email} — You are signed in as <strong>{roleBadge.label}</strong>.
             {isAdmin
               ? ' You have access to user management and system administration.'
@@ -98,28 +98,28 @@ export default function DashboardPage() {
             ? Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border border-slate-100 p-6 animate-pulse"
+                className="glass-card rounded-xl p-6 animate-pulse"
               >
-                <div className="h-4 bg-slate-200 rounded w-20 mb-4" />
-                <div className="h-8 bg-slate-200 rounded w-14" />
+                <div className="h-4 bg-white/10 rounded w-20 mb-4" />
+                <div className="h-8 bg-white/10 rounded w-14" />
               </div>
             ))
             : statCards.map((card, i) => (
               <div
                 key={card.label}
-                className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-slide-up"
+                className="card hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-0.5 animate-slide-up"
                 style={{ animationDelay: `${i * 100}ms` }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-slate-500">{card.label}</span>
+                  <span className="text-sm font-medium text-white/60">{card.label}</span>
                   <span className={`
                       inline-flex items-center justify-center w-9 h-9 rounded-lg
-                      bg-gradient-to-br ${card.color} text-white text-sm shadow-sm
+                      bg-gradient-to-br ${card.color} text-white text-sm shadow-lg
                     `}>
                     {card.icon}
                   </span>
                 </div>
-                <p className="text-3xl font-extrabold text-slate-800">{card.value}</p>
+                <p className="text-3xl font-extrabold text-white">{card.value}</p>
               </div>
             ))}
         </div>
@@ -128,13 +128,13 @@ export default function DashboardPage() {
       {/* Quick Actions + Health */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm animate-slide-up animation-delay-200">
-          <h2 className="text-lg font-bold text-slate-800 mb-4">Quick Actions</h2>
+        <div className="card animate-slide-up animation-delay-200">
+          <h2 className="text-lg font-bold text-white/90 mb-4">Quick Actions</h2>
           <div className="space-y-2">
             {isSuperAdmin && (
               <Link
                 to="/users/new"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-medium text-sm transition-all duration-200 group"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-medium text-sm transition-all duration-200 group"
               >
                 <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -145,7 +145,7 @@ export default function DashboardPage() {
             {isAdmin && (
               <Link
                 to="/users"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-sm transition-all duration-200 group"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-medium text-sm transition-all duration-200 group"
               >
                 <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -155,7 +155,7 @@ export default function DashboardPage() {
             )}
             <Link
               to="/profile"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-sm transition-all duration-200 group"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-medium text-sm transition-all duration-200 group"
             >
               <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -166,34 +166,34 @@ export default function DashboardPage() {
         </div>
 
         {/* Backend Health */}
-        <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm animate-slide-up animation-delay-300">
-          <h2 className="text-lg font-bold text-slate-800 mb-4">System Health</h2>
+        <div className="card animate-slide-up animation-delay-300">
+          <h2 className="text-lg font-bold text-white/90 mb-4">System Health</h2>
           {loading ? (
-            <div className="flex items-center gap-2 text-slate-400">
-              <div className="w-4 h-4 border-2 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
+            <div className="flex items-center gap-2 text-white/50">
+              <div className="w-4 h-4 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
               <span className="text-sm">Checking services...</span>
             </div>
           ) : health ? (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-sm font-semibold text-emerald-800">All systems operational</span>
+              <div className="flex items-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-sm font-semibold text-emerald-300">All systems operational</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-slate-500 mb-0.5">API Server</p>
-                  <p className="text-sm font-bold text-emerald-600 uppercase">{health?.services?.api || 'UP'}</p>
+                <div className="bg-white/5 rounded-lg p-3">
+                  <p className="text-xs font-medium text-white/50 mb-0.5">API Server</p>
+                  <p className="text-sm font-bold text-emerald-400 uppercase">{health?.services?.api || 'UP'}</p>
                 </div>
-                <div className="bg-slate-50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-slate-500 mb-0.5">Database</p>
-                  <p className="text-sm font-bold text-emerald-600 uppercase">{health?.services?.database || 'UP'}</p>
+                <div className="bg-white/5 rounded-lg p-3">
+                  <p className="text-xs font-medium text-white/50 mb-0.5">Database</p>
+                  <p className="text-sm font-bold text-emerald-400 uppercase">{health?.services?.database || 'UP'}</p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-4 py-3 bg-rose-50 border border-rose-100 rounded-xl">
-              <span className="h-2.5 w-2.5 rounded-full bg-rose-500 animate-pulse" />
-              <span className="text-sm font-semibold text-rose-800">Backend unreachable</span>
+            <div className="flex items-center gap-2 px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+              <span className="h-2.5 w-2.5 rounded-full bg-rose-400 animate-pulse" />
+              <span className="text-sm font-semibold text-rose-300">Backend unreachable</span>
             </div>
           )}
         </div>
@@ -201,34 +201,34 @@ export default function DashboardPage() {
 
       {/* Recent Activity */}
       {isAdmin && (
-        <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm animate-slide-up animation-delay-400">
+        <div className="card animate-slide-up animation-delay-400">
           <div className="flex items-center justify-between gap-4 mb-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-800">Recent Activity</h2>
-              <p className="text-sm text-slate-500">Latest account events from recent user activity.</p>
+              <h2 className="text-lg font-bold text-white/90">Recent Activity</h2>
+              <p className="text-sm text-white/50">Latest account events from recent user activity.</p>
             </div>
-            <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/60">
               Updated in real-time
             </span>
           </div>
 
           {recentUsers.length === 0 ? (
-            <div className="text-sm text-slate-500">No recent activity available yet.</div>
+            <div className="text-sm text-white/50">No recent activity available yet.</div>
           ) : (
             <div className="space-y-3">
               {recentUsers.map((u) => (
-                <div key={u.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <div key={u.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">{u.email}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm font-semibold text-white/90">{u.email}</p>
+                    <p className="text-xs text-white/50">
                       {u.role === 'SUPER_ADMIN' ? 'Super Admin' : u.role.charAt(0) + u.role.slice(1).toLowerCase()} • Created {new Date(u.created_at).toLocaleString()}
                     </p>
                   </div>
-                  <div className="inline-flex items-center gap-2 text-xs font-medium text-slate-500">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 ${u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                  <div className="inline-flex items-center gap-2 text-xs font-medium text-white/50">
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 ${u.is_active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`}>
                       {u.is_active ? 'Active' : 'Inactive'}
                     </span>
-                    <span className="text-slate-400">{u.is_first_login ? 'First login pending' : 'Active account'}</span>
+                    <span className="text-white/40">{u.is_first_login ? 'First login pending' : 'Active account'}</span>
                   </div>
                 </div>
               ))}
@@ -238,8 +238,8 @@ export default function DashboardPage() {
       )}
 
       {/* Technology footer */}
-      <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm animate-slide-up animation-delay-500">
-        <h2 className="text-lg font-bold text-slate-800 mb-4">Technology Stack</h2>
+      <div className="card animate-slide-up animation-delay-500">
+        <h2 className="text-lg font-bold text-white/90 mb-4">Technology Stack</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { name: 'FastAPI', desc: 'Backend', icon: '⚡' },
@@ -247,10 +247,10 @@ export default function DashboardPage() {
             { name: 'React + Vite', desc: 'Frontend', icon: '⚛️' },
             { name: 'JWT Auth', desc: 'Security', icon: '🔐' },
           ].map((tech) => (
-            <div key={tech.name} className="bg-slate-50 rounded-xl p-4 border border-slate-100 hover:border-brand-200 transition-colors">
+            <div key={tech.name} className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-purple-500/30 transition-colors">
               <span className="text-xl mb-2 block">{tech.icon}</span>
-              <p className="text-sm font-semibold text-slate-800">{tech.name}</p>
-              <p className="text-xs text-slate-500">{tech.desc}</p>
+              <p className="text-sm font-semibold text-white/90">{tech.name}</p>
+              <p className="text-xs text-white/50">{tech.desc}</p>
             </div>
           ))}
         </div>

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ..core.exceptions import AuthorizationException, NotFoundException
 from ..core.permissions import UserRole
 from ..models.user import User
+from ..models.daily_content import DailyContent
 from ..repositories.daily_content import DailyContentRepository
 from ..repositories.user import UserRepository
 

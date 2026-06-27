@@ -18,6 +18,9 @@ class TodoUpdate(BaseModel):
 class TodoStatusUpdate(BaseModel):
     status: str
 
+class TodoApprovalUpdate(BaseModel):
+    approval_status: str
+
 class TodoRead(BaseModel):
     id: uuid.UUID
     title: str
@@ -28,6 +31,7 @@ class TodoRead(BaseModel):
     assignee_name: Optional[str] = None
     deadline: Optional[datetime] = None
     status: str
+    approval_status: str
     is_personal: bool
     is_deleted: bool
     created_at: datetime

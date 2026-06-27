@@ -51,6 +51,15 @@ export const authApi = {
       new_password: newPassword,
     });
   },
+
+  /**
+   * Register a new Super Admin (only available role for signup).
+   * @param {string} email
+   * @param {string} password
+   */
+  signup(email, password) {
+    return client.post(`${AUTH_PREFIX}/signup`, { email, password });
+  },
 };
 
 export default authApi;

@@ -40,10 +40,15 @@ class TodoService:
                 code="TODO_CREATE_FORBIDDEN"
             )
 
+        approval_status = "approved"
+        if requester.role == UserRole.MENTOR.value:
+            approval_status = "pending"
+
         return TodoRepository.create(
             db=db, title=title, created_by=requester.id,
             assigned_to=assigned_to, description=description,
-            deadline=deadline, is_personal=False
+            deadline=deadline, is_personal=False,
+            approval_status=approval_status
         )
 
     @staticmethod
@@ -55,7 +60,7 @@ class TodoService:
         elif requester.role == UserRole.MENTOR.value:
             return TodoRepository.list_assigned_to_mentor(db, requester.id)
         else:
-            return TodoRepository.list_by_user(db, requester.id)
+            return TodoRepository.list_assigned_to_user_approved(db, requester.id)
 
     @staticmethod
     def get_todo(db: Session, todo_id: uuid.UUID) -> Todo:
@@ -110,6 +115,12 @@ class TodoService:
                 message="Only the assigned user can update todo status",
                 code="TODO_STATUS_FORBIDDEN"
             )
+        if todo.approval_status != "approved":
+            raise APIException(
+                message="Cannot update status on a todo that is not approved",
+                code="NOT_APPROVED",
+                status_code=400
+            )
         if status not in ("pending", "in_progress", "completed"):
             raise APIException(
                 message="Status must be one of: pending, in_progress, completed",
@@ -117,3 +128,45 @@ class TodoService:
                 status_code=400
             )
         return TodoRepository.update_status(db, todo, status)
+
+    @staticmethod
+    def list_pending_approval_for_admin(db: Session, admin_id: uuid.UUID) -> List[Todo]:
+        from app.models.student import AdminStudent
+        assigned_student_ids = db.query(AdminStudent.student_id).filter(AdminStudent.admin_id == admin_id)
+        return db.query(Todo).filter(
+            Todo.assigned_to.in_(assigned_student_ids),
+            Todo.approval_status == "pending",
+            Todo.is_deleted == False
+        ).order_by(Todo.created_at.desc()).all()
+
+    @staticmethod
+    def approve_todo(db: Session, requester: User, todo_id: uuid.UUID) -> Todo:
+        todo = TodoService.get_todo(db, todo_id)
+        if requester.role not in (UserRole.SUPER_ADMIN.value, UserRole.ADMIN.value):
+            raise AuthorizationException(
+                message="Only Admins and Super Admins can approve todos",
+                code="APPROVAL_FORBIDDEN"
+            )
+        if todo.approval_status != "pending":
+            raise APIException(
+                message="Todo is not pending approval",
+                code="NOT_PENDING",
+                status_code=400
+            )
+        return TodoRepository.update(db, todo, {"approval_status": "approved"})
+
+    @staticmethod
+    def reject_todo(db: Session, requester: User, todo_id: uuid.UUID) -> Todo:
+        todo = TodoService.get_todo(db, todo_id)
+        if requester.role not in (UserRole.SUPER_ADMIN.value, UserRole.ADMIN.value):
+            raise AuthorizationException(
+                message="Only Admins and Super Admins can reject todos",
+                code="REJECTION_FORBIDDEN"
+            )
+        if todo.approval_status != "pending":
+            raise APIException(
+                message="Todo is not pending approval",
+                code="NOT_PENDING",
+                status_code=400
+            )
+        return TodoRepository.update(db, todo, {"approval_status": "rejected"})

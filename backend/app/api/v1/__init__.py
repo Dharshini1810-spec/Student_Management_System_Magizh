@@ -9,6 +9,8 @@ from app.api.v1.student_notes import router as student_notes_router
 from app.api.v1.activity_logs import router as activity_logs_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.dashboard import router as dashboard_router, analytics_router as analytics_router
+from app.api.v1.reports import router as reports_router
+from app.api.v1.referral_links import router as referral_links_router
 
 api_router = APIRouter()
 
@@ -23,3 +25,5 @@ api_router.include_router(activity_logs_router, prefix="/activity-logs", tags=["
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
+api_router.include_router(reports_router, prefix="/reports", tags=["Reports"])
+api_router.include_router(referral_links_router, prefix="/referral-links", tags=["Referral Links"])

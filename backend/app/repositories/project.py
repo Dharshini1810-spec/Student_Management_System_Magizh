@@ -6,7 +6,7 @@ from app.models.project import Project
 
 class ProjectRepository:
     @staticmethod
-    def create(db: Session, name: str, assigned_by: uuid.UUID, assigned_to: uuid.UUID, description: Optional[str] = None, tech_stack: Optional[str] = None, deadline: Optional[datetime] = None) -> Project:
+    def create(db: Session, name: str, assigned_by: uuid.UUID, assigned_to: uuid.UUID, description: Optional[str] = None, tech_stack: Optional[str] = None, deadline: Optional[datetime] = None, approval_status: str = "approved") -> Project:
         project = Project(
             name=name,
             description=description,
@@ -14,7 +14,8 @@ class ProjectRepository:
             assigned_to=assigned_to,
             assigned_by=assigned_by,
             deadline=deadline,
-            status="not_started"
+            status="not_started",
+            approval_status=approval_status
         )
         db.add(project)
         db.commit()
@@ -29,6 +30,14 @@ class ProjectRepository:
     def list_assigned_to(db: Session, user_id: uuid.UUID) -> List[Project]:
         return db.query(Project).filter(
             Project.assigned_to == user_id,
+            Project.is_deleted == False
+        ).order_by(Project.created_at.desc()).all()
+
+    @staticmethod
+    def list_assigned_to_approved(db: Session, user_id: uuid.UUID) -> List[Project]:
+        return db.query(Project).filter(
+            Project.assigned_to == user_id,
+            Project.approval_status == "approved",
             Project.is_deleted == False
         ).order_by(Project.created_at.desc()).all()
 

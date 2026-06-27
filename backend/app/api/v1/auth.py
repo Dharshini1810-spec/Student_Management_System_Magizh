@@ -11,16 +11,18 @@ from app.schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordR
 from app.schemas.user import UserRead
 from app.services.auth import AuthService
 from app.models.user import User
+from app.services.referral_link import ReferralLinkService
+from app.models.student import MentorStudent
 
 router = APIRouter()
 
 @router.post("/signup")
 def signup(data: SignupRequest, db: Session = Depends(get_db)):
     """
-    Registration endpoint. Only allows Super Admin to register.
-    All other users (Admins, Mentors, Students) are created via user management routes.
+    Registration endpoint.
+    - Without referral_code: creates a Super Admin account.
+    - With referral_code: creates a Student account linked to the referrer.
     """
-    # Check if a user already exists with this email
     existing_user = UserRepository.get_by_email(db, data.email)
     if existing_user:
         raise APIException(
@@ -29,14 +31,55 @@ def signup(data: SignupRequest, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    # Super admin registration logic
+    hashed_pw = get_password_hash(data.password)
+
+    if data.referral_code:
+        link = ReferralLinkService.validate_code(db, data.referral_code)
+        if not link:
+            raise APIException(
+                message="Invalid or expired referral code.",
+                code="INVALID_REFERRAL_CODE",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        referrer = UserRepository.get_by_id(db, link.user_id)
+        if not referrer:
+            raise APIException(
+                message="Referrer account not found.",
+                code="REFERRER_NOT_FOUND",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        student_user = UserRepository.create(
+            db=db,
+            email=data.email,
+            hashed_password=hashed_pw,
+            name=data.name or data.email.split("@")[0],
+            role=UserRole.STUDENT.value,
+            is_first_login=False,
+            is_approved=True
+        )
+        if referrer.role == UserRole.MENTOR.value or referrer.role == UserRole.SUPER_ADMIN.value:
+            from app.repositories.student import StudentRepository
+            student = StudentRepository.create_profile(db, student_id=student_user.id)
+            mentor_student = MentorStudent(mentor_id=referrer.id, student_id=student.id)
+            db.add(mentor_student)
+            db.commit()
+
+        from app.repositories.referral_link import ReferralLinkRepository
+        ReferralLinkRepository.increment_uses(db, link)
+
+        user_read = UserRead.model_validate(student_user)
+        return success_response(
+            data=user_read.model_dump(),
+            message="Student registered via referral link successfully."
+        )
+
     hashed_pw = get_password_hash(data.password)
     new_user = UserRepository.create(
         db=db,
         email=data.email,
         hashed_password=hashed_pw,
         role=UserRole.SUPER_ADMIN.value,
-        is_first_login=False,  # They set their password during signup, so not first login requirement
+        is_first_login=False,
         is_approved=True
     )
 

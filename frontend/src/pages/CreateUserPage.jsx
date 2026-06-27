@@ -4,9 +4,9 @@ import { useToast } from '../components/Toast';
 import usersApi from '../api/usersApi';
 
 const ROLES = [
-  { value: 'ADMIN', label: 'Admin', desc: 'Can manage users, view reports', color: 'border-brand-200 bg-brand-50' },
-  { value: 'MENTOR', label: 'Mentor', desc: 'Can manage students, attendance', color: 'border-emerald-200 bg-emerald-50' },
-  { value: 'STUDENT', label: 'Student', desc: 'Can view own profile, tasks', color: 'border-sky-200 bg-sky-50' },
+  { value: 'ADMIN', label: 'Admin', desc: 'Can manage users, view reports', color: 'border-brand-500/30 bg-brand-500/10' },
+  { value: 'MENTOR', label: 'Mentor', desc: 'Can manage students, attendance', color: 'border-emerald-500/30 bg-emerald-500/10' },
+  { value: 'STUDENT', label: 'Student', desc: 'Can view own profile, tasks', color: 'border-sky-500/30 bg-sky-500/10' },
 ];
 
 export default function CreateUserPage() {
@@ -43,7 +43,7 @@ export default function CreateUserPage() {
       {/* Back link */}
       <Link
         to="/users"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-600 transition-colors font-medium"
+        className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-purple-400 transition-colors font-medium"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -51,11 +51,11 @@ export default function CreateUserPage() {
         Back to Users
       </Link>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+      <div className="card p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Create New User</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="page-title">Create New User</h1>
+          <p className="text-sm text-white/50 mt-1">
             Set up a new account with a temporary password. The user will be required to change it on first login.
           </p>
         </div>
@@ -64,7 +64,7 @@ export default function CreateUserPage() {
           {/* Email */}
           <div>
             <label htmlFor="create-email" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Email Address <span className="text-rose-500">*</span>
+              Email Address <span className="text-rose-400">*</span>
             </label>
             <input
               id="create-email"
@@ -79,8 +79,8 @@ export default function CreateUserPage() {
 
           {/* Full Name */}
           <div>
-            <label htmlFor="create-fullname" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Full Name <span className="text-slate-400 text-xs">(optional)</span>
+            <label htmlFor="create-fullname" className="block text-sm font-medium text-white/80 mb-1.5">
+              Full Name <span className="text-white/40 text-xs">(optional)</span>
             </label>
             <input
               id="create-fullname"
@@ -95,7 +95,7 @@ export default function CreateUserPage() {
           {/* Temporary Password */}
           <div>
             <label htmlFor="create-password" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Temporary Password <span className="text-rose-500">*</span>
+              Temporary Password <span className="text-rose-400">*</span>
             </label>
             <input
               id="create-password"
@@ -107,17 +107,17 @@ export default function CreateUserPage() {
               required
             />
             {password && !passwordValid && (
-              <p className="text-xs text-rose-500 mt-1">Must be at least 8 characters</p>
+              <p className="text-xs text-rose-400 mt-1">Must be at least 8 characters</p>
             )}
             {password && passwordValid && (
-              <p className="text-xs text-emerald-600 mt-1">✓ Password meets requirements</p>
+              <p className="text-xs text-emerald-400 mt-1">✓ Password meets requirements</p>
             )}
           </div>
 
           {/* Role Selection */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">
-              Role <span className="text-rose-500">*</span>
+            <label className="block text-sm font-medium text-white/80 mb-3">
+              Role <span className="text-rose-400">*</span>
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {ROLES.map((r) => (
@@ -128,22 +128,22 @@ export default function CreateUserPage() {
                   className={`
                     p-4 rounded-xl border-2 text-left transition-all duration-200
                     ${role === r.value
-                      ? `${r.color} border-brand-500 shadow-sm`
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                      ? `${r.color} border-purple-500 shadow-lg shadow-purple-500/10`
+                      : 'border-white/10 bg-white/5 hover:border-white/20'
                     }
                   `}
                 >
-                  <p className={`text-sm font-bold ${role === r.value ? 'text-slate-800' : 'text-slate-600'}`}>
+                  <p className={`text-sm font-bold ${role === r.value ? 'text-white' : 'text-white/70'}`}>
                     {r.label}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">{r.desc}</p>
+                  <p className="text-xs text-white/40 mt-0.5">{r.desc}</p>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Submit */}
-          <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
             <button
               type="submit"
               disabled={loading || !formValid}

@@ -40,12 +40,12 @@ export function ToastProvider({ children }) {
               flex items-start gap-3 cursor-pointer transition-all duration-300
               hover:scale-[1.02]
               ${toast.type === 'success'
-                ? 'bg-emerald-50/90 border-emerald-200 text-emerald-800'
+                ? 'bg-emerald-900/80 border-emerald-500/30 text-emerald-200'
                 : toast.type === 'error'
-                ? 'bg-rose-50/90 border-rose-200 text-rose-800'
+                ? 'bg-rose-900/80 border-rose-500/30 text-rose-200'
                 : toast.type === 'warning'
-                ? 'bg-amber-50/90 border-amber-200 text-amber-800'
-                : 'bg-sky-50/90 border-sky-200 text-sky-800'
+                ? 'bg-amber-900/80 border-amber-500/30 text-amber-200'
+                : 'bg-sky-900/80 border-sky-500/30 text-sky-200'
               }
             `}
             onClick={() => removeToast(toast.id)}

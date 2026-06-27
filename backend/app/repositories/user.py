@@ -154,6 +154,14 @@ class UserRepository:
         return users, total_count
 
     @staticmethod
+    def get_all_active_students(db: Session) -> list[User]:
+        return db.query(User).filter(
+            User.role == "STUDENT",
+            User.is_deleted == False,
+            User.is_active == True,
+        ).all()
+
+    @staticmethod
     def get_assigned_to_admin(db: Session, admin_id: uuid.UUID) -> list[User]:
         from app.models.student import AdminStudent
         return db.query(User).join(AdminStudent, AdminStudent.student_id == User.id).filter(

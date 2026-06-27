@@ -121,12 +121,12 @@ export default function UserDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-brand-200 border-t-brand-600 rounded-full animate-spin" />
-          <p className="text-sm text-slate-500">Loading user details...</p>
+        <div className="flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-3 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+            <p className="text-sm text-white/50">Loading user details...</p>
+          </div>
         </div>
-      </div>
     );
   }
 
@@ -141,7 +141,7 @@ export default function UserDetailPage() {
       {/* Back link */}
       <Link
         to="/users"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-600 transition-colors font-medium"
+        className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-purple-400 transition-colors font-medium"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -150,14 +150,14 @@ export default function UserDetailPage() {
       </Link>
 
       {/* User Profile Card */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="card overflow-hidden !p-0">
         {/* Header band */}
         <div className={`h-24 bg-gradient-to-r ${roleGradient} relative`}>
           <div className="absolute -bottom-8 left-6">
             <div className={`
               w-16 h-16 rounded-2xl bg-gradient-to-br ${roleGradient}
               flex items-center justify-center text-white text-2xl font-bold
-              shadow-lg border-4 border-white
+              shadow-lg border-4 border-slate-800
             `}>
               {userData.email?.charAt(0).toUpperCase()}
             </div>
@@ -167,15 +167,9 @@ export default function UserDetailPage() {
         <div className="pt-12 px-6 pb-6">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-slate-800">{userData.email}</h1>
+              <h1 className="text-xl font-bold text-white">{userData.email}</h1>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`
-                  inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
-                  ${userData.role === 'SUPER_ADMIN' ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                    : userData.role === 'ADMIN' ? 'bg-brand-50 text-brand-700 border border-brand-200'
-                    : userData.role === 'MENTOR' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'bg-sky-50 text-sky-700 border border-sky-200'}
-                `}>
+                <span className={`badge ${userData.role === 'SUPER_ADMIN' ? 'badge-brand' : userData.role === 'ADMIN' ? 'badge-brand' : userData.role === 'MENTOR' ? 'badge-info' : 'badge-info'}`}>
                   {roleLabel}
                 </span>
                 {userData.is_active ? (
@@ -217,24 +211,24 @@ export default function UserDetailPage() {
           </div>
 
           {/* User Details Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-4 bg-slate-50 rounded-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-4 bg-white/5 rounded-xl">
             <div>
-              <p className="text-xs font-medium text-slate-500 mb-0.5">User ID</p>
-              <p className="text-sm text-slate-800 font-mono">{userData.id}</p>
+              <p className="text-xs font-medium text-white/50 mb-0.5">User ID</p>
+              <p className="text-sm text-white/90 font-mono">{userData.id}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500 mb-0.5">Email</p>
-              <p className="text-sm text-slate-800">{userData.email}</p>
+              <p className="text-xs font-medium text-white/50 mb-0.5">Email</p>
+              <p className="text-sm text-white/90">{userData.email}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500 mb-0.5">Created At</p>
-              <p className="text-sm text-slate-800">
+              <p className="text-xs font-medium text-white/50 mb-0.5">Created At</p>
+              <p className="text-sm text-white/90">
                 {new Date(userData.created_at).toLocaleString()}
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500 mb-0.5">Updated At</p>
-              <p className="text-sm text-slate-800">
+              <p className="text-xs font-medium text-white/50 mb-0.5">Updated At</p>
+              <p className="text-sm text-white/90">
                 {new Date(userData.updated_at).toLocaleString()}
               </p>
             </div>
@@ -244,26 +238,26 @@ export default function UserDetailPage() {
 
       {/* Permissions Panel */}
       {permissions && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-slate-800 mb-4">Permissions</h2>
+        <div className="card">
+          <h2 className="section-title mb-4">Permissions</h2>
 
           {/* Role permissions */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-slate-600 mb-2">Role Permissions ({roleLabel})</h3>
+            <h3 className="text-sm font-semibold text-white/60 mb-2">Role Permissions ({roleLabel})</h3>
             <div className="flex flex-wrap gap-2">
               {permissions.role_permissions?.length > 0 ? (
                 permissions.role_permissions.map((p) => (
                   <span key={p} className="badge-brand">{p}</span>
                 ))
               ) : (
-                <span className="text-xs text-slate-400">No role permissions</span>
+                <span className="text-xs text-white/40">No role permissions</span>
               )}
             </div>
           </div>
 
           {/* Direct permissions */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-slate-600 mb-2">Direct Permissions</h3>
+            <h3 className="text-sm font-semibold text-white/60 mb-2">Direct Permissions</h3>
             <div className="flex flex-wrap gap-2">
               {permissions.direct_permissions?.length > 0 ? (
                 permissions.direct_permissions.map((p) => (
@@ -273,7 +267,7 @@ export default function UserDetailPage() {
                       <button
                         onClick={() => handleRevokePermission(p)}
                         disabled={actionLoading === `revoke-${p}`}
-                        className="text-sky-500 hover:text-rose-500 transition-colors"
+                        className="text-sky-300 hover:text-rose-400 transition-colors"
                         title="Revoke"
                       >
                         ×
@@ -282,15 +276,15 @@ export default function UserDetailPage() {
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-slate-400">No direct permissions</span>
+                <span className="text-xs text-white/40">No direct permissions</span>
               )}
             </div>
           </div>
 
           {/* Assign permissions (Super Admin) */}
           {isSuperAdmin && allPermissions.length > 0 && (
-            <div className="border-t border-slate-100 pt-4">
-              <h3 className="text-sm font-semibold text-slate-600 mb-3">Grant Permission</h3>
+            <div className="border-t border-white/5 pt-4">
+              <h3 className="text-sm font-semibold text-white/60 mb-3">Grant Permission</h3>
               <div className="flex flex-wrap gap-2">
                 {allPermissions
                   .filter((p) => !permissions.all_permissions?.includes(p.name))
@@ -299,8 +293,8 @@ export default function UserDetailPage() {
                       key={p.name}
                       onClick={() => handleAssignPermission(p.name)}
                       disabled={actionLoading === `assign-${p.name}`}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-dashed border-slate-300
-                                 text-slate-500 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50
+                      className="text-xs px-3 py-1.5 rounded-lg border border-dashed border-white/20
+                                 text-white/50 hover:border-purple-400 hover:text-purple-300 hover:bg-purple-500/10
                                  transition-all duration-200"
                       title={p.description}
                     >

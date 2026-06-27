@@ -11,7 +11,7 @@ from app.models.project import Project
 from app.services.project import ProjectService
 from app.services.activity_log import ActivityLogService
 from app.services.notification import NotificationService
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectRead, ProjectStatusUpdate
+from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectRead, ProjectStatusUpdate, ProjectApprovalUpdate
 from starlette import status
 
 router = APIRouter()
@@ -28,6 +28,7 @@ def map_project_to_read(project: Project) -> ProjectRead:
         assigner_name=project.assigner.name if project.assigner else None,
         deadline=project.deadline,
         status=project.status,
+        approval_status=project.approval_status,
         is_deleted=project.is_deleted,
         created_at=project.created_at,
         updated_at=project.updated_at
@@ -137,6 +138,85 @@ def update_project_status(
     return success_response(
         data=map_project_to_read(project).model_dump(),
         message="Project status updated successfully."
+    )
+
+@router.get("/pending-approval", response_model=dict)
+def list_pending_approval_projects(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.role == UserRole.SUPER_ADMIN.value:
+        from app.repositories.project import ProjectRepository
+        all_projects = ProjectRepository.list_all(db)
+        pending = [p for p in all_projects if p.approval_status == "pending"]
+    elif current_user.role == UserRole.ADMIN.value:
+        pending = ProjectService.list_pending_approval_for_admin(db, current_user.id)
+    else:
+        raise APIException(
+            message="Only Admins and Super Admins can view pending approvals",
+            code="FORBIDDEN",
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    return success_response(
+        data={"projects": [map_project_to_read(p).model_dump() for p in pending]},
+        message="Pending approval projects retrieved."
+    )
+
+@router.patch("/{id}/approve", response_model=dict)
+def approve_project(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    project = ProjectService.approve_project(db=db, requester=current_user, project_id=id)
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="PROJECT_APPROVED",
+        description=f"Approved project: {project.name}",
+        entity_type="project", entity_id=project.id
+    )
+    if project.assigned_to:
+        NotificationService.send_notification(
+            db=db, user_id=project.assigned_to,
+            title="Project Approved",
+            message=f"Your project '{project.name}' has been approved.",
+            entity_type="project", entity_id=project.id
+        )
+    if project.assigned_by:
+        NotificationService.send_notification(
+            db=db, user_id=project.assigned_by,
+            title="Project Approved",
+            message=f"The project '{project.name}' you created has been approved.",
+            entity_type="project", entity_id=project.id
+        )
+    return success_response(
+        data=map_project_to_read(project).model_dump(),
+        message="Project approved successfully."
+    )
+
+@router.patch("/{id}/reject", response_model=dict)
+def reject_project(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    project = ProjectService.reject_project(db=db, requester=current_user, project_id=id)
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="PROJECT_REJECTED",
+        description=f"Rejected project: {project.name}",
+        entity_type="project", entity_id=project.id
+    )
+    if project.assigned_by:
+        NotificationService.send_notification(
+            db=db, user_id=project.assigned_by,
+            title="Project Rejected",
+            message=f"The project '{project.name}' has been rejected.",
+            entity_type="project", entity_id=project.id
+        )
+    return success_response(
+        data=map_project_to_read(project).model_dump(),
+        message="Project rejected successfully."
     )
 
 @router.delete("/{id}", response_model=dict)

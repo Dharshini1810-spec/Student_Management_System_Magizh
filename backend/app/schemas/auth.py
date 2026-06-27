@@ -29,3 +29,5 @@ class ChangePasswordRequest(BaseModel):
 class SignupRequest(BaseModel):
     email: str
     password: str
+    referral_code: Optional[str] = None
+    name: Optional[str] = None
