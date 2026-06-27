@@ -57,12 +57,11 @@ export default function ReferralLinksPage() {
   };
 
   const handleCopy = async (code) => {
-    const link = `${window.location.origin}/signup?ref=${code}`;
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(code);
       setCopiedId(code);
       setTimeout(() => setCopiedId(null), 2000);
-      toast.success('Copied to clipboard');
+      toast.success('Code copied');
     } catch {
       toast.error('Failed to copy');
     }

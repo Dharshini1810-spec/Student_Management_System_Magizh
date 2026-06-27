@@ -1,12 +1,10 @@
-import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 
 from ..repositories.user import UserRepository
 from ..models.user import User
-from ..core.security import verify_password, get_password_hash
-from ..core.exceptions import AuthenticationException, APIException
+from ..core.security import verify_password, get_password_hash, generate_reset_token
+from ..core.exceptions import AuthenticationException, APIException, NotFoundException
 
 class AuthService:
     @staticmethod
@@ -66,6 +64,32 @@ class AuthService:
         hashed = get_password_hash(new_password)
         return UserRepository.update(db, user, {
             "hashed_password": hashed,
-            "is_first_login": False,  # Clears forced-change flag
+            "is_first_login": False,
+        })
+
+    @staticmethod
+    def forgot_password(db: Session, email: str) -> str:
+        user = UserRepository.get_by_email(db, email)
+        if not user:
+            raise NotFoundException(message="No account found with this email.")
+        token = generate_reset_token()
+        user.reset_token = token
+        user.reset_token_expiry = datetime.now(timezone.utc) + timedelta(hours=24)
+        db.commit()
+        return token
+
+    @staticmethod
+    def reset_password(db: Session, token: str, new_password: str) -> None:
+        user = UserRepository.get_by_reset_token(db, token)
+        if not user or not user.reset_token_expiry:
+            raise APIException(message="Invalid or expired reset token.", code="INVALID_TOKEN", status_code=400)
+        if user.reset_token_expiry < datetime.now(timezone.utc):
+            raise APIException(message="Reset token has expired.", code="TOKEN_EXPIRED", status_code=400)
+        hashed = get_password_hash(new_password)
+        UserRepository.update(db, user, {
+            "hashed_password": hashed,
+            "reset_token": None,
+            "reset_token_expiry": None,
+            "is_first_login": False,
         })
 

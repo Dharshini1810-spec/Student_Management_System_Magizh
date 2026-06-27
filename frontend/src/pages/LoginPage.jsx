@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 
@@ -136,16 +136,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Forgot password link */}
-          <div className="text-right">
-            <Link
-              to="/forgot-password"
-              className="text-xs text-brand-300 hover:text-brand-200 transition-colors font-medium"
-            >
-              Forgot password?
-            </Link>
-          </div>
-
           {/* Submit */}
           <button
             type="submit"
@@ -169,16 +159,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
-        {/* Signup link */}
-        <div className="text-center mt-5">
-          <p className="text-white/40 text-xs">
-            New Super Admin?{' '}
-            <Link to="/signup" className="text-brand-300 hover:text-brand-200 transition-colors font-medium">
-              Create account
-            </Link>
-          </p>
-        </div>
 
         {/* Footer text */}
         <p className="text-center text-white/40 text-xs mt-4">

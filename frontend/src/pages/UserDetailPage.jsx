@@ -81,18 +81,6 @@ export default function UserDetailPage() {
     }
   };
 
-  const handleResetPassword = async () => {
-    setActionLoading('reset');
-    try {
-      const res = await usersApi.adminResetPassword(id);
-      toast.success(`Reset token: ${res.data?.reset_token || 'Generated'}`);
-    } catch (err) {
-      toast.error(err.message || 'Failed to reset password');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const handleAssignPermission = async (permName) => {
     setActionLoading(`assign-${permName}`);
     try {
@@ -198,13 +186,6 @@ export default function UserDetailPage() {
                   {actionLoading === 'toggle'
                     ? 'Processing...'
                     : userData.is_active ? 'Deactivate' : 'Activate'}
-                </button>
-                <button
-                  onClick={handleResetPassword}
-                  disabled={actionLoading === 'reset'}
-                  className="btn-secondary text-sm py-2"
-                >
-                  {actionLoading === 'reset' ? 'Resetting...' : 'Reset Password'}
                 </button>
               </div>
             )}

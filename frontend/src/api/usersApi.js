@@ -45,10 +45,6 @@ export const usersApi = {
     });
   },
 
-  /** Super Admin force-reset another user's password. */
-  adminResetPassword(userId) {
-    return client.post(`${USERS_PREFIX}/${userId}/reset-password`);
-  },
 };
 
 export default usersApi;

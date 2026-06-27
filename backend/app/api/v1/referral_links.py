@@ -7,6 +7,7 @@ from app.core.exceptions import APIException
 from app.models.user import User
 from app.schemas.referral_link import ReferralLinkCreate, ReferralLinkUpdate, ReferralLinkRead
 from app.services.referral_link import ReferralLinkService
+from app.repositories.referral_link import ReferralLinkRepository
 from starlette import status
 
 router = APIRouter()
@@ -55,6 +56,20 @@ def get_referral_link(
 ):
     link = ReferralLinkService.get_link(db=db, link_id=id)
     return success_response(data=map_to_read(link), message="Referral link retrieved.")
+
+@router.patch("/{id}", response_model=dict)
+def update_referral_link(
+    id: uuid.UUID,
+    payload: ReferralLinkUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    link = ReferralLinkService.get_link(db=db, link_id=id)
+    if link.user_id != current_user.id and current_user.role not in ("SUPER_ADMIN", "ADMIN"):
+        raise APIException(message="You can only update your own referral links", code="FORBIDDEN", status_code=403)
+    update_data = payload.model_dump(exclude_unset=True)
+    link = ReferralLinkRepository.update(db, link, update_data)
+    return success_response(data=map_to_read(link), message="Referral link updated.")
 
 @router.delete("/{id}", response_model=dict)
 def deactivate_referral_link(

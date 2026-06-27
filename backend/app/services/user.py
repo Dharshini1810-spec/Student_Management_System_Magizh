@@ -9,7 +9,6 @@ from ..repositories.user import UserRepository
 from ..repositories.role import RoleRepository
 from ..repositories.permission import PermissionRepository
 from ..schemas.role import CreateUserRequest, UserPermissionsResponse
-from .auth import AuthService
 
 
 class UserService:
@@ -290,34 +289,4 @@ class UserService:
             )
         return {"user_id": str(user_id), "permission": permission_name, "revoked": True}
 
-    @staticmethod
-    def admin_reset_password(db: Session, requester: User, user_id: uuid.UUID) -> dict:
-        """
-        Super Admin forces a password reset for another user.
-        Generates and returns a reset token (in development mode, returned directly).
-        """
-        if requester.role != UserRole.SUPER_ADMIN:
-            raise AuthorizationException(
-                message="Only Super Admin can force password resets",
-                code="SUPER_ADMIN_REQUIRED"
-            )
 
-        target = UserRepository.get_by_id(db, user_id)
-        if not target:
-            raise NotFoundException(message=f"User with id '{user_id}' not found")
-
-        if target.role == UserRole.SUPER_ADMIN:
-            raise APIException(
-                message="Cannot force-reset the Super Admin password via this endpoint",
-                code="FORBIDDEN",
-                status_code=403
-            )
-
-        # Delegate to auth service's forgot_password flow
-        token = AuthService.forgot_password(db, email=target.email)
-        return {
-            "user_id": str(user_id),
-            "email": target.email,
-            "reset_token": token,
-            "message": "Password reset token generated. Share with the user to reset their password.",
-        }

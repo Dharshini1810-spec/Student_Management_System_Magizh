@@ -433,33 +433,6 @@ def deactivate_user(
         message="User deactivated successfully."
     )
 
-@router.patch("/{user_id}/reset-password")
-def reset_user_password(
-    user_id: uuid.UUID,
-    current_user: User = Depends(RoleRequired([UserRole.SUPER_ADMIN])),
-    db: Session = Depends(get_db)
-):
-    """
-    Resets user password to standard default and sets is_first_login to True.
-    Restricted to Super Admin.
-    """
-    target_user = UserRepository.get_by_id(db, user_id)
-    if not target_user or target_user.is_deleted:
-        raise APIException(
-            message="User not found",
-            code="USER_NOT_FOUND",
-            status_code=status.HTTP_404_NOT_FOUND
-        )
-
-    hashed_pw = get_password_hash(DEFAULT_STANDARD_PASSWORD)
-    UserRepository.update(db, target_user, {
-        "hashed_password": hashed_pw,
-        "is_first_login": True
-    })
-    return success_response(
-        message=f"User password reset successfully to standard default '{DEFAULT_STANDARD_PASSWORD}'."
-    )
-
 @router.post("/{user_id}/permissions")
 def grant_user_permission(
     user_id: uuid.UUID,

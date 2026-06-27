@@ -54,19 +54,6 @@ export default function UsersPage() {
     }
   };
 
-  const handleResetPassword = async (user) => {
-    setActionLoading(`reset-${user.id}`);
-    try {
-      const res = await usersApi.adminResetPassword(user.id);
-      toast.success(`Reset token created for ${user.email}`);
-      console.log('Password reset token:', res.data?.reset_token);
-    } catch (err) {
-      toast.error(err.message || 'Failed to reset password');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const filteredUsers = users.filter((u) => {
     const matchSearch =
       u.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -226,14 +213,6 @@ export default function UsersPage() {
                               className="text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
                             >
                               {actionLoading === `toggle-${u.id}` ? 'Updating…' : u.is_active ? 'Deactivate' : 'Activate'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleResetPassword(u)}
-                              disabled={actionLoading === `reset-${u.id}`}
-                              className="text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
-                            >
-                              {actionLoading === `reset-${u.id}` ? 'Resetting…' : 'Reset'}
                             </button>
                           </>
                         )}

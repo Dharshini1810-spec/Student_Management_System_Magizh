@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 from jose import jwt, JWTError
@@ -39,3 +40,7 @@ def decode_access_token(token: str):
 def decode_token(token: str):
     """Alias for decode_access_token for backwards compatibility."""
     return decode_access_token(token)
+
+def generate_reset_token(length: int = 48) -> str:
+    """Generate a cryptographically secure random token for password reset."""
+    return secrets.token_urlsafe(length)

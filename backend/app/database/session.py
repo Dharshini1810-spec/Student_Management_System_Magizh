@@ -19,7 +19,8 @@ try:
             User, Role, Permission, RolePermission, UserPermission,
             Student, AdminStudent, MentorStudent,
             Attendance, AttendanceRequest, AttendanceSettings,
-            Todo, DailyContent, Project, StudentNote, ActivityLog, Notification
+            Todo, DailyContent, Project, StudentNote, ActivityLog, Notification,
+            ReferralLink
         )
         Base.metadata.create_all(bind=engine)
         logger.info("Successfully initialized SQLite database schemas.")
@@ -46,7 +47,8 @@ if fallback_to_sqlite:
             User, Role, Permission, RolePermission, UserPermission,
             Student, AdminStudent, MentorStudent,
             Attendance, AttendanceRequest, AttendanceSettings,
-            Todo, DailyContent, Project, StudentNote, ActivityLog, Notification
+            Todo, DailyContent, Project, StudentNote, ActivityLog, Notification,
+            ReferralLink
         )
         Base.metadata.create_all(bind=engine)
         logger.info("Successfully initialized SQLite fallback database schemas.")

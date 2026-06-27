@@ -32,34 +32,7 @@ export const authApi = {
     });
   },
 
-  /**
-   * Request a password reset token (dev mode returns it directly).
-   * @param {string} email
-   */
-  forgotPassword(email) {
-    return client.post(`${AUTH_PREFIX}/forgot-password`, { email });
-  },
 
-  /**
-   * Reset password using a valid recovery token.
-   * @param {string} token
-   * @param {string} newPassword
-   */
-  resetPassword(token, newPassword) {
-    return client.post(`${AUTH_PREFIX}/reset-password`, {
-      token,
-      new_password: newPassword,
-    });
-  },
-
-  /**
-   * Register a new Super Admin (only available role for signup).
-   * @param {string} email
-   * @param {string} password
-   */
-  signup(email, password) {
-    return client.post(`${AUTH_PREFIX}/signup`, { email, password });
-  },
 };
 
 export default authApi;
