@@ -1,9 +1,41 @@
-from fastapi import FastAPI
+import traceback, logging
+from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.api.v1 import auth, users, todos, projects, student_notes, activity_logs, notifications, dashboard, daily_content, reports, attendance, students, roles, permissions, referral_links
 from app.core.response import SuccessResponse
+from app.api.deps import get_db
+from app.database.init_db import init_db
+
+logging.basicConfig(level=logging.ERROR)
 
 app = FastAPI(title="Student Management System API", version="0.1.0")
+
+
+@app.exception_handler(Exception)
+async def debug_exception_handler(request: Request, exc: Exception):
+    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    logging.error(f"Unhandled exception: {tb}")
+    try:
+        path = r"C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\error_traceback.log"
+        with open(path, "a") as f:
+            f.write(f"\n--- {request.method} {request.url.path} ---\n{tb}\n")
+    except Exception as log_err:
+        try:
+            with open(r"C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\error_traceback.log", "a") as f:
+                f.write(f"\nLogger error: {log_err}\n")
+        except:
+            pass
+    return JSONResponse(status_code=500, content={"detail": str(exc), "traceback": tb})
+
+
+@app.on_event("startup")
+def on_startup():
+    db = next(get_db())
+    try:
+        init_db(db)
+    finally:
+        db.close()
 
 # CORS (allow all for dev)
 app.add_middleware(

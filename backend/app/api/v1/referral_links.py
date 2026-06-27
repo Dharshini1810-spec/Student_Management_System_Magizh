@@ -26,7 +26,7 @@ def map_to_read(link, db: Session = None) -> dict:
         user_name=link.user.name if link.user else None
     ).model_dump()
 
-@router.post("", response_model=dict)
+@router.post("", )
 def create_referral_link(
     payload: ReferralLinkCreate,
     current_user: User = Depends(get_current_user),
@@ -40,7 +40,7 @@ def create_referral_link(
     )
     return success_response(data=map_to_read(link), message="Referral link created.")
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_referral_links(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -48,7 +48,7 @@ def list_referral_links(
     links = ReferralLinkService.list_links(db=db, requester=current_user)
     return success_response(data={"links": [map_to_read(l) for l in links]}, message="Referral links retrieved.")
 
-@router.get("/{id}", response_model=dict)
+@router.get("/{id}", )
 def get_referral_link(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -57,7 +57,7 @@ def get_referral_link(
     link = ReferralLinkService.get_link(db=db, link_id=id)
     return success_response(data=map_to_read(link), message="Referral link retrieved.")
 
-@router.patch("/{id}", response_model=dict)
+@router.patch("/{id}", )
 def update_referral_link(
     id: uuid.UUID,
     payload: ReferralLinkUpdate,
@@ -71,7 +71,7 @@ def update_referral_link(
     link = ReferralLinkRepository.update(db, link, update_data)
     return success_response(data=map_to_read(link), message="Referral link updated.")
 
-@router.delete("/{id}", response_model=dict)
+@router.delete("/{id}", )
 def deactivate_referral_link(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),

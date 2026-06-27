@@ -34,7 +34,7 @@ def map_todo_to_read(todo: Todo) -> TodoRead:
         updated_at=todo.updated_at
     )
 
-@router.post("", response_model=dict)
+@router.post("", )
 def create_todo(
     payload: TodoCreate,
     current_user: User = Depends(get_current_user),
@@ -67,7 +67,7 @@ def create_todo(
         message="Todo created successfully."
     )
 
-@router.post("/personal", response_model=dict)
+@router.post("/personal", )
 def create_personal_todo(
     payload: TodoCreate,
     current_user: User = Depends(get_current_user),
@@ -100,7 +100,7 @@ def create_personal_todo(
         message="Personal todo created successfully."
     )
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_todos(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -112,59 +112,7 @@ def list_todos(
         message="Todos retrieved successfully."
     )
 
-@router.get("/{id}", response_model=dict)
-def get_todo(
-    id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    todo = TodoService.get_todo(db=db, todo_id=id)
-    TodoService.check_access(current_user, todo)
-    return success_response(
-        data=map_todo_to_read(todo).model_dump(),
-        message="Todo retrieved successfully."
-    )
-
-@router.put("/{id}", response_model=dict)
-def update_todo(
-    id: uuid.UUID,
-    payload: TodoUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    update_data = payload.model_dump(exclude_unset=True)
-    todo = TodoService.update_todo(
-        db=db, requester=current_user,
-        todo_id=id, update_data=update_data
-    )
-    return success_response(
-        data=map_todo_to_read(todo).model_dump(),
-        message="Todo updated successfully."
-    )
-
-@router.patch("/{id}/status", response_model=dict)
-def update_todo_status(
-    id: uuid.UUID,
-    payload: TodoStatusUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    todo = TodoService.update_status(
-        db=db, requester=current_user,
-        todo_id=id, status=payload.status
-    )
-    ActivityLogService.log_action(
-        db=db, user_id=current_user.id,
-        action="TODO_STATUS_UPDATED",
-        description=f"Updated todo '{todo.title}' status to {payload.status}",
-        entity_type="todo", entity_id=todo.id
-    )
-    return success_response(
-        data=map_todo_to_read(todo).model_dump(),
-        message="Todo status updated successfully."
-    )
-
-@router.get("/pending-approval", response_model=dict)
+@router.get("/pending-approval", )
 def list_pending_approval_todos(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -186,7 +134,59 @@ def list_pending_approval_todos(
         message="Pending approval todos retrieved."
     )
 
-@router.patch("/{id}/approve", response_model=dict)
+@router.get("/{id}", )
+def get_todo(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    todo = TodoService.get_todo(db=db, todo_id=id)
+    TodoService.check_access(current_user, todo)
+    return success_response(
+        data=map_todo_to_read(todo).model_dump(),
+        message="Todo retrieved successfully."
+    )
+
+@router.put("/{id}", )
+def update_todo(
+    id: uuid.UUID,
+    payload: TodoUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    update_data = payload.model_dump(exclude_unset=True)
+    todo = TodoService.update_todo(
+        db=db, requester=current_user,
+        todo_id=id, update_data=update_data
+    )
+    return success_response(
+        data=map_todo_to_read(todo).model_dump(),
+        message="Todo updated successfully."
+    )
+
+@router.patch("/{id}/status", )
+def update_todo_status(
+    id: uuid.UUID,
+    payload: TodoStatusUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    todo = TodoService.update_status(
+        db=db, requester=current_user,
+        todo_id=id, status=payload.status
+    )
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="TODO_STATUS_UPDATED",
+        description=f"Updated todo '{todo.title}' status to {payload.status}",
+        entity_type="todo", entity_id=todo.id
+    )
+    return success_response(
+        data=map_todo_to_read(todo).model_dump(),
+        message="Todo status updated successfully."
+    )
+
+@router.patch("/{id}/approve", )
 def approve_todo(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -218,7 +218,7 @@ def approve_todo(
         message="Todo approved successfully."
     )
 
-@router.patch("/{id}/reject", response_model=dict)
+@router.patch("/{id}/reject", )
 def reject_todo(
     id: uuid.UUID,
     payload: TodoApprovalUpdate,
@@ -244,7 +244,7 @@ def reject_todo(
         message="Todo rejected successfully."
     )
 
-@router.delete("/{id}", response_model=dict)
+@router.delete("/{id}", )
 def delete_todo(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),

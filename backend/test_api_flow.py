@@ -3,7 +3,7 @@ import json
 import sys
 import uuid
 
-API_BASE = "http://127.0.0.1:8000/api/v1"
+API_BASE = "http://127.0.0.1:8001/api/v1"
 
 def api_request(url, method="GET", headers=None, data=None):
     if headers is None:

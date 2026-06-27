@@ -21,7 +21,12 @@ router = APIRouter()
 
 DEFAULT_STANDARD_PASSWORD = "StandardPassword123!"
 
-@router.get("", response_model=dict)
+
+@router.get("/ping")
+def ping():
+    return {"users.router": "pong"}
+
+@router.get("")
 def list_users(
     role: Optional[str] = None,
     search: Optional[str] = None,
@@ -32,59 +37,64 @@ def list_users(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    Retrieves a list of users, with support for pagination, search, role filters,
-    and active/inactive filters. Scopes returned users based on the caller's role:
-    - Super Admin: All users.
-    - Admin: Mentors and Students assigned to the Admin.
-    - Mentor: Students assigned to the Mentor.
-    - Student: Only their own profile.
-    """
-    # Restrict include_deleted to Super Admin only
-    if include_deleted and current_user.role != UserRole.SUPER_ADMIN.value:
-        raise APIException(
-            message="Only Super Admins can query deleted users.",
-            code="UNAUTHORIZED",
-            status_code=status.HTTP_403_FORBIDDEN
+    try:
+        # Restrict include_deleted to Super Admin only
+        if include_deleted and current_user.role != UserRole.SUPER_ADMIN.value:
+            raise APIException(
+                message="Only Super Admins can query deleted users.",
+                code="UNAUTHORIZED",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        # Students cannot list all users
+        if current_user.role == UserRole.STUDENT.value:
+            raise APIException(
+                message="Students are not authorized to list users.",
+                code="FORBIDDEN",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        # Set scoping filters based on caller role
+        admin_id = None
+        mentor_id = None
+        student_id = None
+
+        if current_user.role == UserRole.ADMIN.value:
+            admin_id = current_user.id
+        elif current_user.role == UserRole.MENTOR.value:
+            mentor_id = current_user.id
+
+        users, total_count = UserRepository.get_all(
+            db=db,
+            role=role,
+            search_query=search,
+            is_active=is_active,
+            include_deleted=include_deleted,
+            admin_id=admin_id,
+            mentor_id=mentor_id,
+            student_id=student_id,
+            limit=limit,
+            offset=offset
         )
 
-    # Set scoping filters based on caller role
-    admin_id = None
-    mentor_id = None
-    student_id = None
+        users_data = [UserRead.model_validate(u).model_dump() for u in users]
+        return success_response(
+            data={
+                "users": users_data,
+                "total_count": total_count,
+                "limit": limit,
+                "offset": offset
+            },
+            message="Users retrieved successfully."
+        )
+    except Exception as ex:
+        import traceback as tb
+        err = "".join(tb.format_exception(type(ex), ex, ex.__traceback__))
+        with open(r"C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\users_error.log", "w") as f:
+            f.write("ROUTE HANDLER ERROR:\n" + err)
+        raise
 
-    if current_user.role == UserRole.ADMIN.value:
-        admin_id = current_user.id
-    elif current_user.role == UserRole.MENTOR.value:
-        mentor_id = current_user.id
-    elif current_user.role == UserRole.STUDENT.value:
-        student_id = current_user.id
-
-    users, total_count = UserRepository.get_all(
-        db=db,
-        role=role,
-        search_query=search,
-        is_active=is_active,
-        include_deleted=include_deleted,
-        admin_id=admin_id,
-        mentor_id=mentor_id,
-        student_id=student_id,
-        limit=limit,
-        offset=offset
-    )
-
-    users_data = [UserRead.model_validate(u).model_dump() for u in users]
-    return success_response(
-        data={
-            "users": users_data,
-            "total_count": total_count,
-            "limit": limit,
-            "offset": offset
-        },
-        message="Users retrieved successfully."
-    )
-
-@router.post("", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_user(
     user_in: UserCreate,
     current_user: User = Depends(PermissionRequired("users:create")),

@@ -23,9 +23,25 @@ class APIException(SMSException):
         self.code = code
 
 class AuthenticationException(SMSException):
-    def __init__(self, detail: str = 'Authentication failed'):
-        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+    def __init__(
+        self,
+        message: str = 'Authentication failed',
+        code: str = 'AUTH_FAILED',
+        detail: str = None,
+    ):
+        if detail is not None:
+            message = detail
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=message)
+        self.code = code
 
 class AuthorizationException(SMSException):
-    def __init__(self, detail: str = 'Insufficient permissions'):
-        super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+    def __init__(
+        self,
+        message: str = 'Insufficient permissions',
+        code: str = 'ACCESS_DENIED',
+        detail: str = None,
+    ):
+        if detail is not None:
+            message = detail
+        super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail=message)
+        self.code = code

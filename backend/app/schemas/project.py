@@ -1,10 +1,10 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 
 class ProjectCreate(BaseModel):
-    name: str
+    name: str = Field(validation_alias="title")
     description: Optional[str] = None
     tech_stack: Optional[str] = None
     assigned_to: uuid.UUID

@@ -1,5 +1,5 @@
 ﻿from pydantic import BaseModel
-from typing import Generic, TypeVar, Optional
+from typing import Generic, TypeVar, Optional, Any
 
 T = TypeVar('T')
 
@@ -11,7 +11,7 @@ class StandardResponse(BaseModel, Generic[T]):
 class SuccessResponse(BaseModel):
     success: bool = True
     message: Optional[str] = None
-    data: Optional[dict] = None
+    data: Any = None
 
 def success_response(data=None, message: str = "Success") -> SuccessResponse:
     """Helper function to return standardized success responses."""

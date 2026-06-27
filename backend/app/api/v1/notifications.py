@@ -11,7 +11,7 @@ from app.schemas.notification import NotificationRead
 
 router = APIRouter()
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_notifications(
     is_read: Optional[bool] = None,
     limit: int = Query(default=50, le=200),
@@ -29,7 +29,7 @@ def list_notifications(
         message="Notifications retrieved successfully."
     )
 
-@router.get("/unread-count", response_model=dict)
+@router.get("/unread-count", )
 def unread_notification_count(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -40,7 +40,7 @@ def unread_notification_count(
         message="Unread count retrieved successfully."
     )
 
-@router.patch("/read-all", response_model=dict)
+@router.patch("/read-all", )
 def mark_all_notifications_read(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -51,7 +51,7 @@ def mark_all_notifications_read(
         message="All notifications marked as read."
     )
 
-@router.patch("/{notification_id}/read", response_model=dict)
+@router.patch("/{notification_id}/read", )
 def mark_notification_read(
     notification_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

@@ -43,7 +43,7 @@ def _filtered_student_ids(db: Session, admin_id=None, mentor_id=None, student_id
         return [row[0] for row in _get_assigned_student_ids(db, admin_id=admin_id, mentor_id=mentor_id).all()]
     return None
 
-@router.get("/attendance", response_model=dict)
+@router.get("/attendance", )
 def attendance_report(
     start_date: Optional[date] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[date] = Query(None, description="End date (YYYY-MM-DD)"),
@@ -104,7 +104,7 @@ def attendance_report(
         message="Attendance report retrieved successfully."
     )
 
-@router.get("/students", response_model=dict)
+@router.get("/students", )
 def student_performance_report(
     current_user: User = Depends(PermissionRequired("reports:view")),
     db: Session = Depends(get_db)
@@ -128,8 +128,8 @@ def student_performance_report(
 
         report_data.append({
             "student_id": str(s.id),
-            "name": s.name,
-            "email": s.email,
+            "name": s.user.name,
+            "email": s.user.email,
             "todos": {"total": total_todos, "completed": completed_todos},
             "projects": {"total": total_projects, "completed": completed_projects},
             "attendance": {
@@ -144,7 +144,7 @@ def student_performance_report(
         message="Student performance report retrieved successfully."
     )
 
-@router.get("/projects", response_model=dict)
+@router.get("/projects", )
 def project_report(
     current_user: User = Depends(PermissionRequired("reports:view")),
     db: Session = Depends(get_db)
@@ -170,7 +170,7 @@ def project_report(
         message="Project report retrieved successfully."
     )
 
-@router.get("/todos", response_model=dict)
+@router.get("/todos", )
 def todo_report(
     current_user: User = Depends(PermissionRequired("reports:view")),
     db: Session = Depends(get_db)
@@ -196,7 +196,7 @@ def todo_report(
         message="Todo report retrieved successfully."
     )
 
-@router.get("/activity", response_model=dict)
+@router.get("/activity", )
 def activity_report(
     start_date: Optional[date] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[date] = Query(None, description="End date (YYYY-MM-DD)"),
@@ -243,7 +243,7 @@ def activity_report(
         message="Activity report retrieved successfully."
     )
 
-@router.get("/summary", response_model=dict)
+@router.get("/summary", )
 def comprehensive_summary(
     current_user: User = Depends(PermissionRequired("reports:view")),
     db: Session = Depends(get_db)

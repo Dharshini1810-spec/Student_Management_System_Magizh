@@ -1,0 +1,128 @@
+INFO:     Started server process [29160]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55386 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55387 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55388 - "GET /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55389 - "POST /api/v1/auth/change-password HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:55390 - "POST /api/v1/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:55391 - "GET /api/v1/roles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55392 - "GET /api/v1/permissions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55393 - "GET /api/v1/users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55394 - "POST /api/v1/users HTTP/1.1" 201 Created
+INFO:     127.0.0.1:55395 - "POST /api/v1/users HTTP/1.1" 201 Created
+INFO:     127.0.0.1:55396 - "POST /api/v1/users HTTP/1.1" 201 Created
+INFO:     127.0.0.1:55397 - "POST /api/v1/users HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:55398 - "GET /api/v1/users/7fc130a3-de5e-400f-bef6-4e44e5089203 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55399 - "PUT /api/v1/users/7fc130a3-de5e-400f-bef6-4e44e5089203 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55400 - "PATCH /api/v1/users/7fc130a3-de5e-400f-bef6-4e44e5089203/deactivate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55401 - "PATCH /api/v1/users/7fc130a3-de5e-400f-bef6-4e44e5089203/activate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55402 - "DELETE /api/v1/users/7fc130a3-de5e-400f-bef6-4e44e5089203 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55403 - "GET /api/v1/users/d2546c7d-f5fc-49f3-a094-3a451a3ed4bc/permissions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55404 - "POST /api/v1/users/d2546c7d-f5fc-49f3-a094-3a451a3ed4bc/permissions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55405 - "DELETE /api/v1/users/d2546c7d-f5fc-49f3-a094-3a451a3ed4bc/permissions/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55406 - "POST /api/v1/users/0490104d-0fbb-46aa-90db-7a2f5608d03a/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55407 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55408 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55409 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55410 - "GET /api/v1/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55411 - "GET /api/v1/students/0490104d-0fbb-46aa-90db-7a2f5608d03a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55412 - "PUT /api/v1/students/0490104d-0fbb-46aa-90db-7a2f5608d03a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55413 - "POST /api/v1/students/0490104d-0fbb-46aa-90db-7a2f5608d03a/assign-admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55414 - "POST /api/v1/students/0490104d-0fbb-46aa-90db-7a2f5608d03a/assign-mentor HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55415 - "DELETE /api/v1/students/0490104d-0fbb-46aa-90db-7a2f5608d03a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55416 - "GET /api/v1/attendance/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55417 - "POST /api/v1/attendance/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55418 - "POST /api/v1/attendance/check-in HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55419 - "POST /api/v1/attendance/check-out HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55420 - "GET /api/v1/attendance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55421 - "GET /api/v1/attendance/0490104d-0fbb-46aa-90db-7a2f5608d03a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55422 - "GET /api/v1/attendance/requests HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55423 - "POST /api/v1/todos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55424 - "GET /api/v1/todos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55425 - "GET /api/v1/todos/5a1df262-6360-4690-8897-ab7b40eb2738 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55426 - "PUT /api/v1/todos/5a1df262-6360-4690-8897-ab7b40eb2738 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55427 - "PATCH /api/v1/todos/5a1df262-6360-4690-8897-ab7b40eb2738/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55428 - "POST /api/v1/todos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55429 - "GET /api/v1/todos/pending-approval HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55430 - "PATCH /api/v1/todos/10bc473c-d21e-45f8-94fb-7421f8b8a9cd/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55431 - "POST /api/v1/todos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55432 - "PATCH /api/v1/todos/ad693a07-585a-4864-9cc3-d65a9a287cc9/reject HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55433 - "DELETE /api/v1/todos/5a1df262-6360-4690-8897-ab7b40eb2738 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55434 - "POST /api/v1/todos/personal HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55435 - "POST /api/v1/projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55436 - "GET /api/v1/projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55437 - "GET /api/v1/projects/3cf3480a-31fc-40a9-bd8b-16cdd94bd4a3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55438 - "PUT /api/v1/projects/3cf3480a-31fc-40a9-bd8b-16cdd94bd4a3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55439 - "PATCH /api/v1/projects/3cf3480a-31fc-40a9-bd8b-16cdd94bd4a3/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55440 - "POST /api/v1/projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55441 - "GET /api/v1/projects/pending-approval HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55442 - "PATCH /api/v1/projects/b9549e06-2849-48bd-a579-49048613e706/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55443 - "DELETE /api/v1/projects/3cf3480a-31fc-40a9-bd8b-16cdd94bd4a3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55444 - "POST /api/v1/daily-content HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55445 - "GET /api/v1/daily-content HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55446 - "GET /api/v1/daily-content/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55447 - "GET /api/v1/daily-content/81fada89-1415-4222-841e-29e1a3f49b23 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55448 - "PATCH /api/v1/daily-content/81fada89-1415-4222-841e-29e1a3f49b23 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55449 - "DELETE /api/v1/daily-content/81fada89-1415-4222-841e-29e1a3f49b23 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55450 - "POST /api/v1/students/0490104d-0fbb-46aa-90db-7a2f5608d03a/notes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55451 - "GET /api/v1/students/0490104d-0fbb-46aa-90db-7a2f5608d03a/notes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55452 - "DELETE /api/v1/students/0490104d-0fbb-46aa-90db-7a2f5608d03a/notes/1079d388-f7b7-41ff-a8f2-ff131cfbf4ea HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55453 - "GET /api/v1/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55454 - "GET /api/v1/notifications/unread-count HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55455 - "PATCH /api/v1/notifications/read-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55456 - "GET /api/v1/dashboard/super-admin HTTP/1.1" 200 OK
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:104: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  my_students = db.query(Student.id).filter(Student.id.in_(assigned_student_ids)).count()
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:107: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  Attendance.student_id.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:111: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  Attendance.student_id.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:116: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  AttendanceRequest.student_id.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:121: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  Project.assigned_to.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:126: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  Todo.assigned_to.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:130: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  student_user_ids = db.query(Student.id).filter(Student.id.in_(assigned_student_ids))
+INFO:     127.0.0.1:55457 - "GET /api/v1/dashboard/admin HTTP/1.1" 200 OK
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:166: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  my_students = db.query(Student.id).filter(Student.id.in_(assigned_student_ids)).count()
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:169: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  Attendance.student_id.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:173: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  Attendance.student_id.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:178: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  AttendanceRequest.student_id.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:183: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  Project.assigned_to.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:188: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  Todo.assigned_to.in_(assigned_student_ids),
+C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\dashboard.py:192: SAWarning: Coercing Subquery object into a select() for use in IN(); please pass a select() construct explicitly
+  student_user_ids = db.query(Student.id).filter(Student.id.in_(assigned_student_ids))
+INFO:     127.0.0.1:55458 - "GET /api/v1/dashboard/mentor HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55459 - "GET /api/v1/dashboard/student HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55460 - "GET /api/v1/analytics/attendance-trend HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55461 - "GET /api/v1/analytics/project-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55462 - "GET /api/v1/analytics/student-growth HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55463 - "GET /api/v1/reports/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55464 - "GET /api/v1/reports/attendance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55465 - "GET /api/v1/reports/projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55466 - "GET /api/v1/reports/todos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55467 - "GET /api/v1/reports/students HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55468 - "GET /api/v1/reports/activity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55469 - "GET /api/v1/activity-logs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55470 - "GET /api/v1/activity-logs/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55471 - "POST /api/v1/referral-links HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55472 - "GET /api/v1/referral-links HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55473 - "GET /api/v1/referral-links/1c592780-dbe0-43f1-85d2-4919ac5eb883 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55474 - "PATCH /api/v1/referral-links/1c592780-dbe0-43f1-85d2-4919ac5eb883 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55475 - "DELETE /api/v1/referral-links/1c592780-dbe0-43f1-85d2-4919ac5eb883 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55476 - "GET /api/v1/users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55477 - "POST /api/v1/users HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55478 - "GET /api/v1/users HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55479 - "GET /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55480 - "GET /api/v1/users HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:55481 - "POST /api/v1/todos HTTP/1.1" 401 Unauthorized

@@ -34,7 +34,7 @@ def map_project_to_read(project: Project) -> ProjectRead:
         updated_at=project.updated_at
     )
 
-@router.post("", response_model=dict)
+@router.post("", )
 def create_project(
     payload: ProjectCreate,
     current_user: User = Depends(get_current_user),
@@ -67,7 +67,7 @@ def create_project(
         message="Project created successfully."
     )
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_projects(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -79,7 +79,29 @@ def list_projects(
         message="Projects retrieved successfully."
     )
 
-@router.get("/{id}", response_model=dict)
+@router.get("/pending-approval", )
+def list_pending_approval_projects(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.role == UserRole.SUPER_ADMIN.value:
+        from app.repositories.project import ProjectRepository
+        all_projects = ProjectRepository.list_all(db)
+        pending = [p for p in all_projects if p.approval_status == "pending"]
+    elif current_user.role == UserRole.ADMIN.value:
+        pending = ProjectService.list_pending_approval_for_admin(db, current_user.id)
+    else:
+        raise APIException(
+            message="Only Admins and Super Admins can view pending approvals",
+            code="FORBIDDEN",
+            status_code=status.HTTP_403_FORBIDDEN
+        )
+    return success_response(
+        data={"projects": [map_project_to_read(p).model_dump() for p in pending]},
+        message="Pending approval projects retrieved."
+    )
+
+@router.get("/{id}", )
 def get_project(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -92,7 +114,7 @@ def get_project(
         message="Project retrieved successfully."
     )
 
-@router.put("/{id}", response_model=dict)
+@router.put("/{id}", )
 def update_project(
     id: uuid.UUID,
     payload: ProjectUpdate,
@@ -118,7 +140,7 @@ def update_project(
         message="Project updated successfully."
     )
 
-@router.patch("/{id}/status", response_model=dict)
+@router.patch("/{id}/status", )
 def update_project_status(
     id: uuid.UUID,
     payload: ProjectStatusUpdate,
@@ -140,29 +162,7 @@ def update_project_status(
         message="Project status updated successfully."
     )
 
-@router.get("/pending-approval", response_model=dict)
-def list_pending_approval_projects(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    if current_user.role == UserRole.SUPER_ADMIN.value:
-        from app.repositories.project import ProjectRepository
-        all_projects = ProjectRepository.list_all(db)
-        pending = [p for p in all_projects if p.approval_status == "pending"]
-    elif current_user.role == UserRole.ADMIN.value:
-        pending = ProjectService.list_pending_approval_for_admin(db, current_user.id)
-    else:
-        raise APIException(
-            message="Only Admins and Super Admins can view pending approvals",
-            code="FORBIDDEN",
-            status_code=status.HTTP_403_FORBIDDEN
-        )
-    return success_response(
-        data={"projects": [map_project_to_read(p).model_dump() for p in pending]},
-        message="Pending approval projects retrieved."
-    )
-
-@router.patch("/{id}/approve", response_model=dict)
+@router.patch("/{id}/approve", )
 def approve_project(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -194,7 +194,7 @@ def approve_project(
         message="Project approved successfully."
     )
 
-@router.patch("/{id}/reject", response_model=dict)
+@router.patch("/{id}/reject", )
 def reject_project(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -219,7 +219,7 @@ def reject_project(
         message="Project rejected successfully."
     )
 
-@router.delete("/{id}", response_model=dict)
+@router.delete("/{id}", )
 def delete_project(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),

@@ -49,7 +49,7 @@ def map_request_to_read(req: AttendanceRequest) -> AttendanceRequestRead:
         created_at=req.created_at
     )
 
-@router.post("/check-in", response_model=dict)
+@router.post("/check-in", )
 def student_check_in(
     payload: CheckInRequest,
     current_user: User = Depends(get_current_user),
@@ -101,7 +101,7 @@ def student_check_in(
         message="Checked in successfully."
     )
 
-@router.post("/check-out", response_model=dict)
+@router.post("/check-out", )
 def student_check_out(
     payload: CheckOutRequest,
     current_user: User = Depends(get_current_user),
@@ -146,7 +146,7 @@ def student_check_out(
         message="Checked out successfully."
     )
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_attendance_logs(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -178,7 +178,7 @@ def list_attendance_logs(
         message="Attendance logs retrieved successfully."
     )
 
-@router.get("/requests", response_model=dict)
+@router.get("/requests", )
 def list_attendance_requests(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -210,7 +210,7 @@ def list_attendance_requests(
         message="Attendance requests retrieved successfully."
     )
 
-@router.get("/settings", response_model=dict)
+@router.get("/settings", )
 def get_attendance_settings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -224,7 +224,7 @@ def get_attendance_settings(
         message="Attendance settings retrieved successfully."
     )
 
-@router.post("/settings", response_model=dict)
+@router.post("/settings", )
 def update_attendance_settings(
     payload: AttendanceSettingsCreate,
     current_user: User = Depends(get_current_user),
@@ -251,7 +251,7 @@ def update_attendance_settings(
         message="Attendance settings updated successfully."
     )
 
-@router.post("/requests/{id}/approve", response_model=dict)
+@router.post("/requests/{id}/approve", )
 def approve_attendance_request(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -297,7 +297,7 @@ def approve_attendance_request(
         message="Attendance request approved."
     )
 
-@router.post("/requests/{id}/reject", response_model=dict)
+@router.post("/requests/{id}/reject", )
 def reject_attendance_request(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -343,7 +343,7 @@ def reject_attendance_request(
         message="Attendance request rejected."
     )
 
-@router.get("/{student_id}", response_model=dict)
+@router.get("/{student_id}", )
 def get_student_attendance_history(
     student_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

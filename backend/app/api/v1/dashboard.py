@@ -30,7 +30,7 @@ def _get_assigned_student_ids(db: Session, admin_id: uuid.UUID = None, mentor_id
         q = q.join(MentorStudent, MentorStudent.student_id == Student.id).filter(MentorStudent.mentor_id == mentor_id)
     return q
 
-@router.get("/super-admin", response_model=dict)
+@router.get("/super-admin", )
 def get_super_admin_dashboard(
     current_user: User = Depends(RoleRequired([UserRole.SUPER_ADMIN])),
     db: Session = Depends(get_db)
@@ -92,7 +92,7 @@ def get_super_admin_dashboard(
         message="Super Admin dashboard retrieved successfully."
     )
 
-@router.get("/admin", response_model=dict)
+@router.get("/admin", )
 def get_admin_dashboard(
     current_user: User = Depends(RoleRequired([UserRole.ADMIN])),
     db: Session = Depends(get_db)
@@ -154,7 +154,7 @@ def get_admin_dashboard(
         message="Admin dashboard retrieved successfully."
     )
 
-@router.get("/mentor", response_model=dict)
+@router.get("/mentor", )
 def get_mentor_dashboard(
     current_user: User = Depends(RoleRequired([UserRole.MENTOR])),
     db: Session = Depends(get_db)
@@ -216,7 +216,7 @@ def get_mentor_dashboard(
         message="Mentor dashboard retrieved successfully."
     )
 
-@router.get("/student", response_model=dict)
+@router.get("/student", )
 def get_student_dashboard(
     current_user: User = Depends(RoleRequired([UserRole.STUDENT])),
     db: Session = Depends(get_db)
@@ -256,9 +256,8 @@ def get_student_dashboard(
     ).count()
 
     today_daily_content = db.query(DailyContent).filter(
-        DailyContent.assigned_to == student_id,
         DailyContent.content_date == today,
-        DailyContent.is_deleted == False
+        DailyContent.is_active == True
     ).order_by(DailyContent.created_at.desc()).first()
 
     return success_response(
@@ -290,8 +289,7 @@ def get_student_dashboard(
             "today_daily_content": {
                 "id": str(today_daily_content.id),
                 "title": today_daily_content.title,
-                "description": today_daily_content.description,
-                "links": today_daily_content.links
+                "content": today_daily_content.content
             } if today_daily_content else None
         },
         message="Student dashboard retrieved successfully."
@@ -299,7 +297,7 @@ def get_student_dashboard(
 
 # ─── Analytics (Super Admin only) ──────────────────────────────────────────────
 
-@analytics_router.get("/attendance-trend", response_model=dict)
+@analytics_router.get("/attendance-trend", )
 def attendance_trend(
     current_user: User = Depends(RoleRequired([UserRole.SUPER_ADMIN])),
     db: Session = Depends(get_db)
@@ -326,7 +324,7 @@ def attendance_trend(
         message="Attendance trend retrieved successfully."
     )
 
-@analytics_router.get("/project-stats", response_model=dict)
+@analytics_router.get("/project-stats", )
 def project_stats(
     current_user: User = Depends(RoleRequired([UserRole.SUPER_ADMIN])),
     db: Session = Depends(get_db)
@@ -348,7 +346,7 @@ def project_stats(
         message="Project stats retrieved successfully."
     )
 
-@analytics_router.get("/student-growth", response_model=dict)
+@analytics_router.get("/student-growth", )
 def student_growth(
     current_user: User = Depends(RoleRequired([UserRole.SUPER_ADMIN])),
     db: Session = Depends(get_db)
@@ -356,16 +354,16 @@ def student_growth(
     six_months_ago = datetime.now(timezone.utc) - timedelta(days=180)
 
     rows = db.query(
-        func.date_trunc("month", User.created_at).label("month"),
+        func.strftime('%Y-%m-01', User.created_at).label("month"),
         func.count(User.id).label("count")
     ).filter(
         User.role == "STUDENT",
         User.is_deleted == False,
         User.created_at >= six_months_ago
     ).group_by(
-        func.date_trunc("month", User.created_at)
+        func.strftime('%Y-%m-01', User.created_at)
     ).order_by(
-        func.date_trunc("month", User.created_at)
+        func.strftime('%Y-%m-01', User.created_at)
     ).all()
 
     growth = [

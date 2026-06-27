@@ -34,7 +34,7 @@ def require_admin_or_mentor(current_user: User) -> None:
             status_code=status.HTTP_403_FORBIDDEN
         )
 
-@router.post("", response_model=dict)
+@router.post("", )
 def create_student_note(
     student_id: uuid.UUID,
     payload: StudentNoteCreate,
@@ -64,7 +64,7 @@ def create_student_note(
         message="Note added successfully."
     )
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_student_notes(
     student_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -89,7 +89,7 @@ def list_student_notes(
         message="Notes retrieved successfully."
     )
 
-@router.delete("/{note_id}", response_model=dict)
+@router.delete("/{note_id}", )
 def delete_student_note(
     student_id: uuid.UUID,
     note_id: uuid.UUID,

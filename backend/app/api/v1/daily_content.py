@@ -28,7 +28,7 @@ def map_to_read(dc: DailyContent) -> DailyContentRead:
         updated_at=dc.updated_at,
     )
 
-@router.post("", response_model=dict)
+@router.post("", )
 def create_daily_content(
     payload: DailyContentCreate,
     current_user: User = Depends(PermissionRequired("daily_content:assign")),
@@ -52,7 +52,7 @@ def create_daily_content(
         message="Daily content created successfully.",
     )
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_daily_content(
     content_date: Optional[date] = None,
     limit: int = Query(default=50, le=200),
@@ -70,7 +70,7 @@ def list_daily_content(
         message="Daily content retrieved successfully.",
     )
 
-@router.get("/today", response_model=dict)
+@router.get("/today", )
 def get_today_content(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -81,7 +81,7 @@ def get_today_content(
         message="Today's content retrieved successfully.",
     )
 
-@router.get("/{content_id}", response_model=dict)
+@router.get("/{content_id}", )
 def get_daily_content(
     content_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -93,7 +93,7 @@ def get_daily_content(
         message="Daily content retrieved successfully.",
     )
 
-@router.patch("/{content_id}", response_model=dict)
+@router.patch("/{content_id}", )
 def update_daily_content(
     content_id: uuid.UUID,
     payload: DailyContentUpdate,
@@ -110,7 +110,7 @@ def update_daily_content(
         message="Daily content updated successfully.",
     )
 
-@router.delete("/{content_id}", response_model=dict)
+@router.delete("/{content_id}", )
 def delete_daily_content(
     content_id: uuid.UUID,
     current_user: User = Depends(PermissionRequired("daily_content:assign")),

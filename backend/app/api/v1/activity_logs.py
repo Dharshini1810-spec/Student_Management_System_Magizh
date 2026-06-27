@@ -14,7 +14,7 @@ from app.schemas.activity_log import ActivityLogRead
 
 router = APIRouter()
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_all_logs(
     user_id: Optional[uuid.UUID] = None,
     date_from: Optional[date] = None,
@@ -41,7 +41,7 @@ def list_all_logs(
         message="Activity logs retrieved successfully."
     )
 
-@router.get("/me", response_model=dict)
+@router.get("/me", )
 def list_my_logs(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
