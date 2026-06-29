@@ -3,16 +3,10 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, get_current_user
 from app.core.response import success_response
-<<<<<<< HEAD
 from app.core.security import create_access_token, get_password_hash
 from app.core.permissions import UserRole
 from app.core.exceptions import APIException
-from app.schemas.auth import LoginRequest, ChangePasswordRequest, SignupRequest
-=======
-from app.core.security import create_access_token
-from app.schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
-from app.schemas.role import ChangePasswordRequest
->>>>>>> fcf518897bf1e7d68bc46b20f3d81c9d5f561424
+from app.schemas.auth import LoginRequest, ChangePasswordRequest, SignupRequest, ForgotPasswordRequest, ResetPasswordRequest
 from app.schemas.user import UserRead
 from app.services.auth import AuthService
 from app.models.user import User
@@ -90,43 +84,14 @@ def read_current_user(current_user: User = Depends(get_current_user)):
         message="User profile retrieved successfully"
     )
 
-<<<<<<< HEAD
 @router.post("/change-password")
 def change_password(
     data: ChangePasswordRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-=======
-
-@router.post("/change-password")
-def change_password(
-    data: ChangePasswordRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
     """
     Changes the password for the currently authenticated user.
-    This endpoint is used for:
-    - **First-login forced password change** (when `must_change_password=true`)
-    - **Voluntary password change**
-
-    Requires the current (or temporary) password and a new password (min 8 chars).
-    """
-    AuthService.change_password(
-        db=db,
-        user=current_user,
-        current_password=data.current_password,
-        new_password=data.new_password,
-    )
-    return success_response(message="Password changed successfully. Please log in again with your new password.")
-
-
-@router.post("/forgot-password")
-def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
->>>>>>> fcf518897bf1e7d68bc46b20f3d81c9d5f561424
-    """
-    Allows the logged-in user to change their password.
     """
     AuthService.change_password(
         db=db,
@@ -136,4 +101,30 @@ def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     )
     return success_response(
         message="Password has been changed successfully."
+    )
+
+@router.post("/forgot-password")
+def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Generates a password recovery reset token.
+    For easy local testing, the token is returned directly in the response payload.
+    """
+    reset_token = AuthService.forgot_password(db, email=data.email)
+    return success_response(
+        data={"reset_token": reset_token},
+        message="Password reset instructions generated successfully"
+    )
+
+@router.post("/reset-password")
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Resets the password utilizing a valid, non-expired recovery token.
+    """
+    AuthService.reset_password(
+        db, 
+        token=data.token, 
+        new_password=data.new_password
+    )
+    return success_response(
+        message="Password has been reset successfully"
     )

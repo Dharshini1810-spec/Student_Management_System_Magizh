@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+# SQLAlchemy database models package
 from app.models.user import User
 from app.models.role import Role
 from app.models.permission import Permission
@@ -12,11 +12,3 @@ __all__ = [
     "Student", "AdminStudent", "MentorStudent",
     "Attendance", "AttendanceRequest", "AttendanceSettings"
 ]
-
-=======
-# SQLAlchemy database models package
-from app.models.user import User
-from app.models.role import Role, Permission, RolePermission, UserPermission
-
-__all__ = ["User", "Role", "Permission", "RolePermission", "UserPermission"]
->>>>>>> fcf518897bf1e7d68bc46b20f3d81c9d5f561424
