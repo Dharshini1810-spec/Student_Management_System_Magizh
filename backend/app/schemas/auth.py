@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from typing import Optional
-from app.schemas.user import UserRead
 
 class LoginRequest(BaseModel):
     email: str
@@ -15,17 +14,6 @@ class Token(BaseModel):
     token_type: str = "bearer"
     role: str
 
-class ForgotPasswordRequest(BaseModel):
-    email: str
-
-class ResetPasswordRequest(BaseModel):
-    token: str
-    new_password: str
-
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
-
-class SignupRequest(BaseModel):
-    email: str
-    password: str

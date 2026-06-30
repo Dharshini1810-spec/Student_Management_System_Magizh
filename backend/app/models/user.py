@@ -1,14 +1,10 @@
 from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List, TYPE_CHECKING
-from sqlalchemy import String, Boolean, DateTime, ForeignKey
+from typing import List, Optional
+from sqlalchemy import String, Boolean, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database.base import Base
-
-if TYPE_CHECKING:
-    from app.models.student import Student
-
+from ..database.base import Base
 
 class User(Base):
     __tablename__ = "users"
@@ -18,10 +14,10 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), nullable=False)
     name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_first_login: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_approved: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     

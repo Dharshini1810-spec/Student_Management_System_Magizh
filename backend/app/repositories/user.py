@@ -2,7 +2,7 @@ import uuid
 from typing import Optional, Any, Dict, List, Tuple
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from app.models.user import User
+from ..models.user import User
 
 class UserRepository:
     @staticmethod
@@ -152,6 +152,14 @@ class UserRepository:
         users = query.order_by(User.created_at.desc()).offset(offset).limit(limit).all()
 
         return users, total_count
+
+    @staticmethod
+    def get_all_active_students(db: Session) -> list[User]:
+        return db.query(User).filter(
+            User.role == "STUDENT",
+            User.is_deleted == False,
+            User.is_active == True,
+        ).all()
 
     @staticmethod
     def get_assigned_to_admin(db: Session, admin_id: uuid.UUID) -> list[User]:

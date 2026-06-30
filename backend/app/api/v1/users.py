@@ -1,5 +1,4 @@
 import uuid
-<<<<<<< HEAD
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -10,6 +9,8 @@ from app.core.exceptions import APIException
 from app.core.response import success_response
 from app.models.user import User
 from app.repositories.user import UserRepository
+from app.services.activity_log import ActivityLogService
+from app.services.notification import NotificationService
 from typing import Optional
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 
@@ -20,7 +21,12 @@ router = APIRouter()
 
 DEFAULT_STANDARD_PASSWORD = "StandardPassword123!"
 
-@router.get("", response_model=dict)
+
+@router.get("/ping")
+def ping():
+    return {"users.router": "pong"}
+
+@router.get("")
 def list_users(
     role: Optional[str] = None,
     search: Optional[str] = None,
@@ -31,59 +37,64 @@ def list_users(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    Retrieves a list of users, with support for pagination, search, role filters,
-    and active/inactive filters. Scopes returned users based on the caller's role:
-    - Super Admin: All users.
-    - Admin: Mentors and Students assigned to the Admin.
-    - Mentor: Students assigned to the Mentor.
-    - Student: Only their own profile.
-    """
-    # Restrict include_deleted to Super Admin only
-    if include_deleted and current_user.role != UserRole.SUPER_ADMIN.value:
-        raise APIException(
-            message="Only Super Admins can query deleted users.",
-            code="UNAUTHORIZED",
-            status_code=status.HTTP_403_FORBIDDEN
+    try:
+        # Restrict include_deleted to Super Admin only
+        if include_deleted and current_user.role != UserRole.SUPER_ADMIN.value:
+            raise APIException(
+                message="Only Super Admins can query deleted users.",
+                code="UNAUTHORIZED",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        # Students cannot list all users
+        if current_user.role == UserRole.STUDENT.value:
+            raise APIException(
+                message="Students are not authorized to list users.",
+                code="FORBIDDEN",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        # Set scoping filters based on caller role
+        admin_id = None
+        mentor_id = None
+        student_id = None
+
+        if current_user.role == UserRole.ADMIN.value:
+            admin_id = current_user.id
+        elif current_user.role == UserRole.MENTOR.value:
+            mentor_id = current_user.id
+
+        users, total_count = UserRepository.get_all(
+            db=db,
+            role=role,
+            search_query=search,
+            is_active=is_active,
+            include_deleted=include_deleted,
+            admin_id=admin_id,
+            mentor_id=mentor_id,
+            student_id=student_id,
+            limit=limit,
+            offset=offset
         )
 
-    # Set scoping filters based on caller role
-    admin_id = None
-    mentor_id = None
-    student_id = None
+        users_data = [UserRead.model_validate(u).model_dump() for u in users]
+        return success_response(
+            data={
+                "users": users_data,
+                "total_count": total_count,
+                "limit": limit,
+                "offset": offset
+            },
+            message="Users retrieved successfully."
+        )
+    except Exception as ex:
+        import traceback as tb
+        err = "".join(tb.format_exception(type(ex), ex, ex.__traceback__))
+        with open(r"C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\users_error.log", "w") as f:
+            f.write("ROUTE HANDLER ERROR:\n" + err)
+        raise
 
-    if current_user.role == UserRole.ADMIN.value:
-        admin_id = current_user.id
-    elif current_user.role == UserRole.MENTOR.value:
-        mentor_id = current_user.id
-    elif current_user.role == UserRole.STUDENT.value:
-        student_id = current_user.id
-
-    users, total_count = UserRepository.get_all(
-        db=db,
-        role=role,
-        search_query=search,
-        is_active=is_active,
-        include_deleted=include_deleted,
-        admin_id=admin_id,
-        mentor_id=mentor_id,
-        student_id=student_id,
-        limit=limit,
-        offset=offset
-    )
-
-    users_data = [UserRead.model_validate(u).model_dump() for u in users]
-    return success_response(
-        data={
-            "users": users_data,
-            "total_count": total_count,
-            "limit": limit,
-            "offset": offset
-        },
-        message="Users retrieved successfully."
-    )
-
-@router.post("", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_user(
     user_in: UserCreate,
     current_user: User = Depends(PermissionRequired("users:create")),
@@ -193,6 +204,19 @@ def create_user(
     if not is_approved:
         message += " Pending Super Admin approval."
 
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="USER_CREATED",
+        description=f"Created {role_upper} user: {new_user.email}",
+        entity_type="user", entity_id=new_user.id
+    )
+    if role_upper == UserRole.STUDENT.value and (admin_id or mentor_id):
+        NotificationService.send_notification(
+            db=db, user_id=new_user.id,
+            title="Account Created",
+            message=f"Your student account has been created and assigned to {'an admin' if admin_id else ''}{' and ' if admin_id and mentor_id else ''}{'a mentor' if mentor_id else ''}.",
+            entity_type="user", entity_id=new_user.id
+        )
     return success_response(
         data=user_read.model_dump(),
         message=message
@@ -323,6 +347,13 @@ def update_user(
     # Perform update
     updated_user = UserRepository.update(db, target_user, update_dict)
     user_read = UserRead.model_validate(updated_user)
+    if target_user.role == UserRole.STUDENT.value and ("admin_id" in update_dict or "mentor_id" in update_dict):
+        NotificationService.send_notification(
+            db=db, user_id=target_user.id,
+            title="Assignment Updated",
+            message="Your admin/mentor assignment has been updated.",
+            entity_type="user", entity_id=target_user.id
+        )
     return success_response(
         data=user_read.model_dump(),
         message="User updated successfully."
@@ -346,6 +377,12 @@ def soft_delete_user(
         )
 
     UserRepository.update(db, target_user, {"is_deleted": True})
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="USER_DELETED",
+        description=f"Soft-deleted {target_user.role} user: {target_user.email}",
+        entity_type="user", entity_id=target_user.id
+    )
     return success_response(
         message="User soft-deleted successfully."
     )
@@ -368,6 +405,12 @@ def activate_user(
         )
 
     UserRepository.update(db, target_user, {"is_active": True})
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="USER_ACTIVATED",
+        description=f"Activated {target_user.role} user: {target_user.email}",
+        entity_type="user", entity_id=target_user.id
+    )
     return success_response(
         message="User activated successfully."
     )
@@ -390,35 +433,14 @@ def deactivate_user(
         )
 
     UserRepository.update(db, target_user, {"is_active": False})
+    ActivityLogService.log_action(
+        db=db, user_id=current_user.id,
+        action="USER_DEACTIVATED",
+        description=f"Deactivated {target_user.role} user: {target_user.email}",
+        entity_type="user", entity_id=target_user.id
+    )
     return success_response(
         message="User deactivated successfully."
-    )
-
-@router.patch("/{user_id}/reset-password")
-def reset_user_password(
-    user_id: uuid.UUID,
-    current_user: User = Depends(RoleRequired([UserRole.SUPER_ADMIN])),
-    db: Session = Depends(get_db)
-):
-    """
-    Resets user password to standard default and sets is_first_login to True.
-    Restricted to Super Admin.
-    """
-    target_user = UserRepository.get_by_id(db, user_id)
-    if not target_user or target_user.is_deleted:
-        raise APIException(
-            message="User not found",
-            code="USER_NOT_FOUND",
-            status_code=status.HTTP_404_NOT_FOUND
-        )
-
-    hashed_pw = get_password_hash(DEFAULT_STANDARD_PASSWORD)
-    UserRepository.update(db, target_user, {
-        "hashed_password": hashed_pw,
-        "is_first_login": True
-    })
-    return success_response(
-        message=f"User password reset successfully to standard default '{DEFAULT_STANDARD_PASSWORD}'."
     )
 
 @router.post("/{user_id}/permissions")
@@ -536,199 +558,8 @@ def get_user_permissions(
         data={
             "role_permissions": role_perms_data,
             "custom_permissions": custom_perms_data,
-            "all_permission_names": list(combined_names)
+            "all_permission_names": list(combined_names),
         },
         message="User permissions retrieved successfully."
     )
-=======
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_user
-from app.core.permissions import require_permission, require_super_admin, require_roles, UserRole
-from app.core.response import success_response
-from app.models.user import User
-from app.schemas.role import (
-    CreateUserRequest,
-    AssignPermissionRequest,
-    RevokePermissionRequest,
-    UpdateUserRequest,
-)
-from app.schemas.user import UserRead
-from app.services.user import UserService
-
-router = APIRouter()
-
-
-# ─── User Management ──────────────────────────────────────────────────────────
-
-@router.post("/", status_code=status.HTTP_201_CREATED, tags=["User Management"])
-def create_user(
-    data: CreateUserRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_super_admin()),
-):
-    """
-    **Super Admin only.**
-
-    Creates a new user account (Admin, Mentor, or Student).
-    Super Admin sets the email and a temporary password.
-    The user must change their password on first login (`is_first_login=true`).
-    """
-    user = UserService.create_user(db, requester=current_user, data=data)
-    user_read = UserRead.model_validate(user)
-    return success_response(
-        data=user_read.model_dump(),
-        message=f"User '{user.email}' created successfully with role '{user.role}'."
-    )
-
-
-@router.get("/", tags=["User Management"])
-def list_users(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles([UserRole.SUPER_ADMIN, UserRole.ADMIN])),
-):
-    """
-    **Super Admin / Admin.**
-
-    Lists all users.
-    - Super Admin sees everyone.
-    - Admin sees all non-super-admin users.
-    """
-    users = UserService.list_users(db, requester=current_user)
-    data = [UserRead.model_validate(u).model_dump() for u in users]
-    return success_response(data=data, message=f"Retrieved {len(data)} users")
-
-
-@router.get("/{user_id}", tags=["User Management"])
-def get_user(
-    user_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """
-    **Authenticated.**
-
-    Returns details for a specific user.
-    - Super Admin: can view anyone
-    - Admin: can view non-super-admin users
-    - Others: can only view themselves
-    """
-    user = UserService.get_user(db, requester=current_user, user_id=user_id)
-    user_read = UserRead.model_validate(user)
-    return success_response(data=user_read.model_dump(), message="User retrieved successfully")
-
-
-@router.patch("/{user_id}", tags=["User Management"])
-def update_user(
-    user_id: uuid.UUID,
-    data: UpdateUserRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission("users:update")),
-):
-    """
-    **Requires: `users:update` permission.**
-
-    Updates user fields (currently: `is_active`).
-    Admin cannot modify Super Admin accounts.
-    """
-    update_dict = data.model_dump(exclude_none=True)
-    user = UserService.update_user(db, requester=current_user, user_id=user_id, update_data=update_dict)
-    user_read = UserRead.model_validate(user)
-    return success_response(data=user_read.model_dump(), message="User updated successfully")
-
-
-@router.delete("/{user_id}", tags=["User Management"])
-def deactivate_user(
-    user_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission("users:delete")),
-):
-    """
-    **Requires: `users:delete` permission.**
-
-    Soft-deletes (deactivates) a user account. Cannot target Super Admin or yourself.
-    """
-    user = UserService.deactivate_user(db, requester=current_user, user_id=user_id)
-    return success_response(
-        data={"user_id": str(user.id), "is_active": user.is_active},
-        message=f"User '{user.email}' has been deactivated"
-    )
-
-
-# ─── Permission Management ────────────────────────────────────────────────────
-
-@router.get("/{user_id}/permissions", tags=["Permissions"])
-def get_user_permissions(
-    user_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """
-    **Super Admin or self.**
-
-    Returns the complete permissions profile for a user:
-    - `role_permissions`: inherited from the user's role
-    - `direct_permissions`: directly assigned by Super Admin
-    - `all_permissions`: combined set (deduped)
-    """
-    result = UserService.get_user_permissions(db, requester=current_user, user_id=user_id)
-    return success_response(data=result.model_dump(), message="User permissions retrieved successfully")
-
-
-@router.post("/{user_id}/permissions", tags=["Permissions"])
-def assign_permission(
-    user_id: uuid.UUID,
-    data: AssignPermissionRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_super_admin()),
-):
-    """
-    **Super Admin only.**
-
-    Grants an additional (direct) permission to a specific user.
-    This is additive on top of their role permissions. Idempotent.
-    """
-    result = UserService.assign_permission(
-        db, requester=current_user, user_id=user_id, permission_name=data.permission.value
-    )
-    return success_response(data=result, message=f"Permission '{data.permission.value}' granted successfully")
-
-
-@router.delete("/{user_id}/permissions", tags=["Permissions"])
-def revoke_permission(
-    user_id: uuid.UUID,
-    data: RevokePermissionRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_super_admin()),
-):
-    """
-    **Super Admin only.**
-
-    Revokes a directly assigned permission from a specific user.
-    Role-based permissions are not affected.
-    """
-    result = UserService.revoke_permission(
-        db, requester=current_user, user_id=user_id, permission_name=data.permission.value
-    )
-    return success_response(data=result, message=f"Permission '{data.permission.value}' revoked successfully")
-
-
-# ─── Password Reset (Super Admin) ─────────────────────────────────────────────
-
-@router.post("/{user_id}/reset-password", tags=["User Management"])
-def admin_reset_user_password(
-    user_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_super_admin()),
-):
-    """
-    **Super Admin only.**
-
-    Forces a password reset for another user.
-    Returns a reset token that the user must use with `POST /auth/reset-password`.
-    In development mode, the token is returned directly in the response.
-    """
-    result = UserService.admin_reset_password(db, requester=current_user, user_id=user_id)
-    return success_response(data=result, message="Password reset token generated")
->>>>>>> fcf518897bf1e7d68bc46b20f3d81c9d5f561424

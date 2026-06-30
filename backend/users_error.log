@@ -1,0 +1,5 @@
+ROUTE HANDLER ERROR:
+Traceback (most recent call last):
+  File "C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\app\api\v1\users.py", line 51, in list_users
+    raise APIException(
+app.core.exceptions.APIException: 403: Students are not authorized to list users.

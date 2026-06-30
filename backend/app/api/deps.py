@@ -4,17 +4,17 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
-from app.core.security import decode_token
-from app.database.session import SessionLocal
-from app.core.exceptions import AuthenticationException, AuthorizationException
-from app.core.permissions import UserRole
-from app.models.user import User
-from app.repositories.user import UserRepository
+from ..core.config import settings
+from ..core.security import decode_token, decode_access_token
+from ..core.exceptions import AuthenticationException, AuthorizationException
+from ..core.permissions import UserRole, has_permission
+from ..database.session import SessionLocal
+from ..models.user import User
+from ..repositories.user import UserRepository
 
 # OAuth2PasswordBearer extracts the Bearer token from the Authorization header
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login"
+    tokenUrl="/api/v1/auth/login"
 )
 
 def get_db() -> Generator[Session, None, None]:
@@ -37,38 +37,23 @@ def get_current_user(
     """
     payload = decode_token(token)
     if not payload:
-        raise AuthenticationException(
-            message="Could not validate credentials",
-            code="INVALID_CREDENTIALS"
-        )
+        raise AuthenticationException(detail="Could not validate credentials")
     
     user_id_str = payload.get("sub")
     if not user_id_str:
-        raise AuthenticationException(
-            message="Token is missing subject claim",
-            code="INVALID_TOKEN_CLAIMS"
-        )
+        raise AuthenticationException(detail="Token is missing subject claim")
         
     try:
         user_uuid = uuid.UUID(user_id_str)
     except ValueError:
-        raise AuthenticationException(
-            message="Invalid user identifier format",
-            code="INVALID_USER_ID"
-        )
+        raise AuthenticationException(detail="Invalid user identifier format")
         
     user = UserRepository.get_by_id(db, user_uuid)
     if not user:
-        raise AuthenticationException(
-            message="User not found",
-            code="USER_NOT_FOUND"
-        )
+        raise AuthenticationException(detail="User not found")
         
     if not user.is_active:
-        raise AuthenticationException(
-            message="User account is deactivated",
-            code="INACTIVE_USER"
-        )
+        raise AuthenticationException(detail="User account is deactivated")
         
     return user
 
@@ -82,10 +67,7 @@ class RoleRequired:
     def __call__(self, current_user: User = Depends(get_current_user)) -> User:
         user_role = current_user.role
         if user_role not in [role.value for role in self.allowed_roles]:
-            raise AuthorizationException(
-                message="You do not have permission to access this resource",
-                code="INSUFFICIENT_PERMISSIONS"
-            )
+            raise AuthorizationException(detail="You do not have permission to access this resource")
         return current_user
 
 class PermissionRequired:

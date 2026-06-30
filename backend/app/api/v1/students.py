@@ -41,7 +41,7 @@ def map_student_to_read(student: Student) -> StudentRead:
         assigned_mentor_ids=assigned_mentor_ids
     )
 
-@router.get("", response_model=dict)
+@router.get("", )
 def list_students(
     search: Optional[str] = None,
     is_active: Optional[bool] = None,
@@ -95,7 +95,7 @@ def list_students(
         message="Students retrieved successfully."
     )
 
-@router.post("", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_student(
     student_in: StudentCreate,
     current_user: User = Depends(PermissionRequired("students:create")),
@@ -144,7 +144,7 @@ def create_student(
         message="Student created successfully."
     )
 
-@router.get("/{id}", response_model=dict)
+@router.get("/{id}", )
 def get_student(
     id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -168,7 +168,7 @@ def get_student(
         message="Student retrieved successfully."
     )
 
-@router.put("/{id}", response_model=dict)
+@router.put("/{id}", )
 def update_student(
     id: uuid.UUID,
     student_in: StudentUpdate,
@@ -201,7 +201,7 @@ def update_student(
         message="Student profile updated successfully."
     )
 
-@router.delete("/{id}", response_model=dict)
+@router.delete("/{id}", )
 def delete_student(
     id: uuid.UUID,
     current_user: User = Depends(PermissionRequired("students:delete")),
@@ -232,7 +232,7 @@ def delete_student(
         message="Student soft deleted successfully."
     )
 
-@router.post("/{id}/assign-admin", response_model=dict)
+@router.post("/{id}/assign-admin", )
 def assign_student_admin(
     id: uuid.UUID,
     payload: AdminAssign,
@@ -264,7 +264,7 @@ def assign_student_admin(
         message="Student assigned to Admin successfully."
     )
 
-@router.post("/{id}/assign-mentor", response_model=dict)
+@router.post("/{id}/assign-mentor", )
 def assign_student_mentor(
     id: uuid.UUID,
     payload: MentorAssign,

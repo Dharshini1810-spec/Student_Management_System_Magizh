@@ -1,8 +1,13 @@
 import uuid
+<<<<<<< HEAD
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 from app.core.permissions import UserRole, PermissionName
+=======
+from pydantic import BaseModel, ConfigDict
+from typing import Optional
+>>>>>>> 9474bc19262d9715051791b4bc94b87a919d16ab
 
 class RoleRead(BaseModel):
     id: int
@@ -11,6 +16,7 @@ class RoleRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+<<<<<<< HEAD
 
 # --- Additional Schemas used by UserService ---
 
@@ -46,6 +52,14 @@ class UserPermissionRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+=======
+class CreateUserRequest(BaseModel):
+    email: str
+    role: str
+    name: Optional[str] = None
+    admin_id: Optional[uuid.UUID] = None
+    mentor_id: Optional[uuid.UUID] = None
+>>>>>>> 9474bc19262d9715051791b4bc94b87a919d16ab
 
 class UserPermissionsResponse(BaseModel):
     user_id: uuid.UUID
@@ -53,6 +67,7 @@ class UserPermissionsResponse(BaseModel):
     role_permissions: list[str]
     direct_permissions: list[str]
     all_permissions: list[str]
+<<<<<<< HEAD
 
 
 class ChangePasswordRequest(BaseModel):
@@ -80,3 +95,5 @@ class UserListItem(BaseModel):
 class UpdateUserRequest(BaseModel):
     is_active: Optional[bool] = None
 
+=======
+>>>>>>> 9474bc19262d9715051791b4bc94b87a919d16ab

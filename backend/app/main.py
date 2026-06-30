@@ -1,94 +1,69 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import logging
-
-from app.core.config import settings
-from app.core.exceptions import register_exception_handlers
-from app.core.response import success_response
-
-from sqlalchemy import text
-from app.database.session import SessionLocal
-from app.api.v1 import api_router
-from app.database.session import SessionLocal
+import traceback, logging
+from fastapi import FastAPI, Request
+from starlette.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from app.api.v1 import auth, users, todos, projects, student_notes, activity_logs, notifications, dashboard, daily_content, reports, attendance, students, roles, permissions, referral_links
+from app.core.response import SuccessResponse
+from app.api.deps import get_db
 from app.database.init_db import init_db
 
-# Configure logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.ERROR)
+
+app = FastAPI(title="Student Management System API", version="0.1.0")
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Runs startup routines (DB verification + seeding) on application start.
-    """
-    logger.info("Running startup routines...")
-    db = SessionLocal()
+@app.exception_handler(Exception)
+async def debug_exception_handler(request: Request, exc: Exception):
+    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    logging.error(f"Unhandled exception: {tb}")
+    try:
+        path = r"C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\error_traceback.log"
+        with open(path, "a") as f:
+            f.write(f"\n--- {request.method} {request.url.path} ---\n{tb}\n")
+    except Exception as log_err:
+        try:
+            with open(r"C:\Users\Admin\Desktop\Student_Management_System_Magizh\backend\error_traceback.log", "a") as f:
+                f.write(f"\nLogger error: {log_err}\n")
+        except:
+            pass
+    return JSONResponse(status_code=500, content={"detail": str(exc), "traceback": tb})
+
+
+@app.on_event("startup")
+def on_startup():
+    db = next(get_db())
     try:
         init_db(db)
     finally:
         db.close()
-    logger.info("Startup routines complete.")
-    yield
 
-
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    docs_url=f"{settings.API_V1_STR}/docs",
-    redoc_url=f"{settings.API_V1_STR}/redoc",
-    lifespan=lifespan,
+# CORS (allow all for dev)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Set up CORS middleware
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# Register routers
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(todos.router, prefix="/api/v1/todos", tags=["todos"])
+app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"])
+app.include_router(student_notes.router, prefix="/api/v1/students/{student_id}/notes", tags=["student_notes"])
+app.include_router(activity_logs.router, prefix="/api/v1/activity-logs", tags=["activity_logs"])
+app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
+app.include_router(daily_content.router, prefix="/api/v1/daily-content", tags=["daily_content"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
+app.include_router(dashboard.analytics_router, prefix="/api/v1/analytics", tags=["analytics"])
+app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
+app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["attendance"])
+app.include_router(students.router, prefix="/api/v1/students", tags=["students"])
+app.include_router(roles.router, prefix="/api/v1/roles", tags=["roles"])
+app.include_router(permissions.router, prefix="/api/v1/permissions", tags=["permissions"])
+app.include_router(referral_links.router, prefix="/api/v1/referral-links", tags=["referral_links"])
 
-# Register central global exception handlers
-register_exception_handlers(app)
-
-# Register base API router
-app.include_router(api_router, prefix=settings.API_V1_STR)
-
-
-@app.get("/")
-def root():
-    """
-    Root endpoint redirecting/confirming the API version and status.
-    """
-    return success_response(
-        data={"version": "1.0.0", "project": settings.PROJECT_NAME},
-        message="Welcome to the Student Management System API."
-    )
-
-
-@app.get("/health")
+@app.get("/health", response_model=SuccessResponse)
 def health_check():
-    """
-    Health check endpoint to verify API and Database status.
-    """
-    db_status = "healthy"
-    try:
-        db = SessionLocal()
-        db.execute(text("SELECT 1"))
-        db.close()
-    except Exception as e:
-        db_status = "unhealthy"
-        logger.error(f"Database health check failed: {e}")
-
-    return success_response(
-        data={
-            "services": {
-                "api": "healthy",
-                "database": db_status
-            }
-        },
-        message="System status retrieved successfully."
-    )
+    return SuccessResponse(message="ok")

@@ -1,9 +1,9 @@
 import logging
 from sqlalchemy.orm import Session
 
-from app.repositories.user import UserRepository
-from app.core.security import get_password_hash
-from app.core.permissions import UserRole, PermissionName
+from ..repositories.user import UserRepository
+from ..core.security import get_password_hash
+from ..core.permissions import UserRole, PermissionName
 
 logger = logging.getLogger(__name__)
 
@@ -60,13 +60,15 @@ ROLE_DESCRIPTIONS: dict[str, str] = {
 }
 
 
+from ..models.role import Role
+from ..models.permission import Permission
+from ..models.role_permission import RolePermission
+
 def seed_roles_and_permissions(db: Session) -> None:
     """
     Idempotently seeds all roles and permissions, then assigns them.
     Safe to run on every startup.
     """
-    from app.models.role import Role, Permission, RolePermission
-
     logger.info("Seeding roles and permissions...")
 
     # 1. Seed Roles

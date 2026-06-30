@@ -2,6 +2,7 @@ from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 
+
 class Role(Base):
     __tablename__ = "roles"
 
